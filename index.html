@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Floor Plan Selector – Collins Ridge</title>
+<style>
+    :root {
+        color-scheme: light;
+        --primary: #1e3a8a;
+        --primary-light: #3b82f6;
+        --primary-soft: #eff6ff;
+        --border: #e5e7eb;
+        --text: #1f2937;
+        --muted: #6b7280;
+        --bg: #f9fafb;
+        --white: #ffffff;
+        --yes: #166534; --yes-bg: #dcfce7; --yes-bd: #86efac;
+        --no: #991b1b; --no-bg: #fee2e2; --no-bd: #fca5a5;
+        --opt: #92400e; --opt-bg: #fef3c7; --opt-bd: #f59e0b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.45; -webkit-tap-highlight-color: transparent; }
+    button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+    .app { max-width: 1400px; margin: 0 auto; padding: 20px 20px 120px; }
+
+    /* Header */
+    .header { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+    .header h1 { font-size: 26px; line-height: 1.1; color: var(--primary); }
+    .version { font-size: 11px; font-weight: 500; letter-spacing: .4px; color: #9ca3af; }
+    .header .sub { flex-basis: 100%; font-size: 14px; color: var(--muted); }
+
+    .layout { display: grid; grid-template-columns: 320px 1fr; gap: 20px; align-items: start; }
+
+    /* Filters */
+    .filters { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 16px; position: sticky; top: 12px; max-height: calc(100vh - 24px); overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .filters-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .filters-head h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .5px; color: var(--primary); }
+    .link-btn { font-size: 13px; font-weight: 700; color: var(--primary-light); padding: 6px 4px; }
+    .fgroup { padding: 12px 0; border-top: 1px solid var(--border); }
+    .fgroup:first-of-type { border-top: 0; }
+    .fgroup h3 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--muted); margin-bottom: 8px; }
+    .hint { font-size: 12px; color: var(--muted); background: var(--bg); border-radius: 8px; padding: 8px 10px; margin: 4px 0 0; }
+    .hint b { color: var(--yes); }
+    .hint i { color: var(--no); font-style: normal; font-weight: 700; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip { min-height: 38px; padding: 7px 12px; border-radius: 999px; border: 1.5px solid var(--border); background: var(--white); font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+    .chip .mark { display: inline-block; width: 12px; text-align: center; font-weight: 800; color: #c0c4cc; }
+    .chip.on { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .chip.yes { background: var(--yes-bg); border-color: var(--yes-bd); color: var(--yes); }
+    .chip.yes .mark { color: var(--yes); }
+    .chip.no { background: var(--no-bg); border-color: var(--no-bd); color: var(--no); }
+    .chip.no .mark { color: var(--no); }
+    .seg { display: flex; border: 1.5px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--white); }
+    .seg button { flex: 1; min-height: 38px; padding: 6px 4px; font-size: 12.5px; font-weight: 600; border-left: 1px solid var(--border); }
+    .seg button:first-child { border-left: 0; }
+    .seg button.on { background: var(--primary); color: #fff; }
+    .range-row + .range-row { margin-top: 6px; }
+    .range-row .rl { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; color: var(--muted); }
+    .range-row .rl span:last-child { font-size: 14px; color: var(--primary); }
+    input[type=range] { width: 100%; height: 30px; accent-color: var(--primary); }
+
+    /* Wish list + results header */
+    .wish { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+    .wish .lbl { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--muted); margin-right: 2px; }
+    .wish .empty { font-size: 14px; color: var(--muted); }
+    .wpill { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 5px 10px; border-radius: 999px; font-size: 13px; font-weight: 600; background: var(--primary-soft); color: var(--primary); border: 1px solid #bfdbfe; }
+    .wpill.no { background: var(--no-bg); color: var(--no); border-color: var(--no-bd); }
+    .wpill .x { font-weight: 800; opacity: .6; }
+    .res-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+    .res-head h2 { font-size: 16px; color: var(--primary); }
+    .sort { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; color: var(--muted); }
+    .sort .seg { min-width: 160px; }
+
+    /* Cards */
+    .cards { display: flex; flex-direction: column; gap: 12px; }
+    .card { position: relative; background: var(--white); border: 2px solid var(--border); border-radius: 12px; padding: 16px 18px; cursor: pointer; transition: border-color .15s, box-shadow .15s, background .15s; }
+    @media (hover: hover) { .card:hover { border-color: var(--primary-light); box-shadow: 0 4px 14px rgba(59,130,246,.12); } }
+    .card.selected { border-color: var(--primary); background: #f5f8ff; box-shadow: 0 0 0 3px rgba(30,58,138,.18); }
+    .check { position: absolute; top: 14px; right: 14px; width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--border); background: var(--white); display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 800; color: transparent; }
+    .card.selected .check { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .card-top { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; padding-right: 44px; }
+    .card-name { font-size: 24px; font-weight: 800; line-height: 1.1; color: var(--primary); }
+    .card-price { font-size: 14px; font-weight: 600; }
+    .card-specs { margin-top: 6px; font-size: 12.5px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; }
+    .glance-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .glance { display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 600; line-height: 1.2; }
+    .glance svg { flex-shrink: 0; }
+    .g-type { background: #ede9fe; color: #5b21b6; }
+    .g-main { background: #dcfce7; color: #166534; }
+    .g-space { background: #dbeafe; color: #1e40af; }
+    .g-opt { background: var(--opt-bg); color: var(--opt); box-shadow: inset 0 0 0 1px var(--opt-bd); }
+    .glance.hit { box-shadow: inset 0 0 0 1.5px currentColor; }
+    .opt-note { display: inline-block; margin-top: 10px; padding: 6px 10px; border-radius: 8px; font-size: 12.5px; font-weight: 600; color: var(--opt); background: var(--opt-bg); }
+    .card.sold { opacity: .5; cursor: default; }
+    .card.sold .check { display: none; }
+    .sold-badge { position: absolute; top: 14px; right: 14px; background: #dc2626; color: #fff; font-size: 11px; font-weight: 800; letter-spacing: .5px; text-transform: uppercase; padding: 5px 10px; border-radius: 6px; }
+    .empty { background: var(--white); border: 1px dashed #cbd5e1; border-radius: 12px; padding: 28px; text-align: center; font-size: 14px; color: var(--muted); }
+
+    /* Ruled out */
+    .ruled { margin-top: 20px; }
+    .ruled-toggle { width: 100%; display: flex; justify-content: space-between; align-items: center; min-height: 46px; padding: 10px 14px; background: var(--white); border: 1px solid var(--border); border-radius: 12px; font-size: 14px; font-weight: 700; color: var(--muted); }
+    .ruled-hint { font-size: 12px; color: var(--muted); margin: 10px 2px 8px; }
+    .ruled-list { display: flex; flex-direction: column; gap: 8px; }
+    .rcard { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+    .rcard .rn { font-size: 17px; font-weight: 800; color: #94a3b8; }
+    .rcard .rs { font-size: 12px; font-weight: 600; color: #94a3b8; }
+    .rcard .rsel { margin-left: auto; min-height: 32px; padding: 4px 12px; border-radius: 999px; border: 1.5px solid var(--border); font-size: 12px; font-weight: 700; color: var(--primary); }
+    .rcard .rsel.on { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .reasons { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 6px; }
+    .reason { min-height: 30px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; color: var(--no); background: var(--no-bg); border: 1px solid var(--no-bd); }
+    .tradeoff { flex-basis: 100%; font-size: 12px; font-weight: 600; color: var(--opt); }
+
+    /* Compare bar */
+    .cbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; display: none; background: var(--white); border-top: 1px solid var(--border); box-shadow: 0 -6px 20px rgba(0,0,0,.08); padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); }
+    .cbar.show { display: block; }
+    .cbar-inner { max-width: 1400px; margin: 0 auto; display: flex; align-items: center; flex-wrap: wrap; gap: 8px 10px; }
+    .slot { display: inline-flex; align-items: center; gap: 8px; padding: 4px 4px 4px 14px; border-radius: 999px; background: var(--primary-soft); border: 1.5px solid #bfdbfe; font-size: 14px; font-weight: 700; color: var(--primary); }
+    .slot button { width: 32px; height: 32px; border-radius: 50%; background: var(--white); font-weight: 800; color: var(--muted); }
+    .slot.empty-slot { background: transparent; border-style: dashed; color: var(--muted); font-weight: 600; padding: 8px 14px; }
+    .cbar-msg { font-size: 13px; font-weight: 600; color: var(--no); }
+    .spacer { flex: 1; }
+    .btn { min-height: 42px; padding: 8px 18px; border-radius: 10px; font-size: 14px; font-weight: 700; }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-ghost { background: var(--white); border: 1.5px solid var(--border); }
+
+    /* Compare sheet */
+    .sheet { position: fixed; inset: 0; z-index: 100; display: none; background: rgba(17,24,39,.45); }
+    .sheet.show { display: block; }
+    .sheet-inner { position: absolute; inset: 16px; background: var(--white); border-radius: 14px; display: flex; flex-direction: column; overflow: hidden; }
+    .sheet-head { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding: 12px 18px; border-bottom: 1px solid var(--border); }
+    .sheet-head h2 { margin-right: auto; font-size: 18px; color: var(--primary); }
+    .sheet-head input { min-height: 40px; width: 230px; padding: 6px 10px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 14px; }
+    .sheet-body { flex: 1; overflow: auto; -webkit-overflow-scrolling: touch; padding: 6px 18px 24px; }
+    .legend-diff { font-size: 12px; color: var(--muted); margin: 8px 0 4px; }
+    .legend-diff span { background: #fffbeb; border: 1px solid #fde68a; border-radius: 4px; padding: 1px 6px; }
+    .ctable { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .ctable th, .ctable td { text-align: left; vertical-align: top; padding: 9px 10px; border-bottom: 1px solid var(--border); }
+    .ctable thead th { position: sticky; top: 0; z-index: 1; background: var(--white); font-size: 22px; font-weight: 800; color: var(--primary); }
+    .ctable tbody th { width: 170px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--muted); }
+    .ctable td { font-weight: 600; }
+    .ctable tr.sec th { padding: 7px 10px; background: var(--bg); color: var(--primary); }
+    .ctable tr.diff td { background: #fffbeb; }
+    .ctable a { color: var(--primary-light); font-weight: 700; }
+
+    #printArea { display: none; }
+
+    @media (max-width: 1024px) {
+        .layout { grid-template-columns: 290px 1fr; }
+        .card-name { font-size: 22px; }
+    }
+    @media (max-width: 760px) {
+        .layout { grid-template-columns: 1fr; }
+        .filters { position: static; max-height: none; }
+        .sheet-inner { inset: 0; border-radius: 0; }
+        .ctable thead th { font-size: 18px; }
+        .ctable tbody th { width: 110px; }
+    }
+
+    @media print {
+        @page { size: letter; margin: 0.45in; }
+        html, body { background: #fff !important; }
+        .app, .cbar, .sheet { display: none !important; }
+        #printArea { display: block !important; }
+        .ppage { break-after: page; page-break-after: always; }
+        .ppage:last-child { break-after: auto; page-break-after: auto; }
+        .p-head { display: flex; justify-content: space-between; gap: 16px; padding-bottom: 8px; margin-bottom: 10px; border-bottom: 2px solid #1e3a8a; }
+        .p-title { font-size: 20px; font-weight: 800; color: #1e3a8a; }
+        .p-sub, .p-rep { font-size: 11px; color: #374151; }
+        .p-rep { text-align: right; }
+        .p-wish { font-size: 11px; margin-bottom: 8px; }
+        #printArea .ctable { font-size: 10.5px; }
+        #printArea .ctable th, #printArea .ctable td { padding: 4px 6px; }
+        #printArea .ctable thead th { position: static; font-size: 15px; }
+        #printArea .ctable tbody th { width: 120px; font-size: 9px; }
+        #printArea .ctable tr.diff td, #printArea .ctable tr.sec th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .p-fine { margin-top: 8px; font-size: 8.5px; color: #6b7280; }
+        #printArea img { display: block; width: 100%; max-height: 9.3in; object-fit: contain; margin-top: 6px; }
+    }
+</style>
+</head>
+<body>
+<div class="app">
+    <header class="header">
+        <h1>Floor Plan Selector</h1><span class="version" id="version"></span>
+        <p class="sub">Collins Ridge · tap what matters to them and the list narrows as you go</p>
+    </header>
+    <div class="layout">
+        <aside class="filters" id="filters"></aside>
+        <main>
+            <div class="wish" id="wish"></div>
+            <div class="res-head">
+                <h2 id="resCount"></h2>
+                <div class="sort"><span>Sort</span><div class="seg" id="sortSeg"><button data-sort="sqft">Sq Ft</button><button data-sort="price">Price</button></div></div>
+            </div>
+            <div class="cards" id="cards"></div>
+            <section class="ruled" id="ruled"></section>
+        </main>
+    </div>
+</div>
+<div class="cbar" id="cbar"></div>
+<div class="sheet" id="sheet"></div>
+<div id="printArea"></div>
+
+<script>
+    const VERSION = 'ver 3.a';
+    // Printed at the top of the comparison sheet. Change here if someone else uses the tool.
+    const SALES_REP = 'Charles Carper · 984-328-2788 · Clcarper@DRHorton.com';
+
+    // Lowest current price per model
+    const modelPrices = {
+        Robie: 418000, Alec: 474000, Calhoun: 490000, Cali: 445000, Galen: 450000, Hanover: 479000,
+        Hayden: 463000, Jackson: 493000, Landon: 432000, Linville: 390000, Savannah: 380000, Sierra: 418000
+    };
+
+    const COVERED_STAR = 'Covered* (community &amp; homesite specific)';
+    const PATIO_STAR = 'Patio* (size varies by homesite)';
+
+    // Source: official D.R. Horton plan sheets for Collins Ridge + Chuck's confirmations.
+    // features: flex, loft, upstairs, dining (separate dining room), pantry, butler, covered, islandSink, gardenTub, tray, vaulted
+    const floorPlans = [
+        { name: 'Cali', type: 'sf', rearLoad: false, stories: 1, bedrooms: 4, bathrooms: 2, sqft: 1764,
+          primaryDown: true, bedroomDown: true, laundry: '1st',
+          features: ['pantry', 'vaulted', 'covered', 'islandSink'],
+          primarySize: '12\' x 15\'', livingSize: '15\'1" x 16\'4"', upstairs: null,
+          dining: 'Dining room · 10\'11" x 10\'5"', patio: 'Covered · 11\' x 8\'',
+          garageSize: '20\'1" x 20\'', ceiling: 'Vaulted ceiling in primary', pdfUrl: 'https://www.drhorton.com/-/media/drhorton/productcatalog/495-raleigh/49730-collins-ridge/497300000-collins-ridge-50/1765/cali_-_4_bd_-_tradition_series_nofp_collins_ridge.jpg?rev=3395e77ddf264f0caa7fc5fa89615a26&hash=5F7AD503560DBEA82806357F5FB06410' },
+        { name: 'Savannah', type: 'th', rearLoad: false, stories: 2, bedrooms: 4, bathrooms: 2.5, sqft: 2240,
+          primaryDown: true, bedroomDown: true, laundry: '1st',
+          features: ['pantry', 'loft', 'islandSink'],
+          primarySize: '12\'4" x 15\'', livingSize: '12\'4" x 16\'11"', upstairs: { type: 'Loft', size: '25\' x 15\'8"' },
+          dining: 'Dining room · 15\'4" x 10\'10"', patio: PATIO_STAR,
+          garageSize: '18\'6" x 20\'', note: 'Side windows on end units only',
+          pdfUrl: 'https://www.drhorton.com/-/media/drhorton/productcatalog/495-raleigh/49727-collins-ridge/497280000-collins-ridge-26-th/t202/savannah_-_tradition_series_collins_ridge.jpg?rev=c8b4e38044ee46779a4caad2c526584d&hash=BFDA12966C8CF9C921F68F08607C6D8D' },
+        { name: 'Galen', type: 'sf', rearLoad: false, stories: 2, bedrooms: 3, bathrooms: 2.5, sqft: 2340,
+          primaryDown: false, bedroomDown: false, laundry: '2nd',
+          features: ['flex', 'loft', 'pantry', 'islandSink'],
+          primarySize: '20\'8" x 13\'4"', livingSize: '25\'8" x 19\'8"', upstairs: { type: 'Loft', size: '12\'4" x 11\'4"' },
+          flexSize: '12\'4" x 12\'4"', flexNote: 'optional French doors',
+          dining: 'Open to living room / kitchen', patio: PATIO_STAR, garageSize: '20\'8" x 20\'4"',
+          options: [{ short: 'Bed 4 option', badge: 'Opt: Bed 4 instead of Loft', label: 'Bedroom 4 instead of the loft', bedrooms: 4, removes: ['loft'] }],
+          pdfUrl: 'https://www.drhorton.com/-/media/drhorton/productcatalog/495-raleigh/49730-collins-ridge/497300000-collins-ridge-50/2341/galen_-_3-4bd_-_tradition_series_nofp_collins_ridge.jpg?rev=7abde535a1b2427ba00c2b94a844dc55&hash=C07AAADA4B06BB3B20475C868E6BEFDC' },
+        { name: 'Robie', type: 'sf', rearLoad: false, stories: 2, bedrooms: 5, bathrooms: 3, sqft: 2368,
+          primaryDown: false, bedroomDown: true, laundry: '2nd',
+          features: ['flex', 'loft', 'pantry', 'islandSink'],
+          primarySize: '', livingSize: '', upstairs: { type: 'Loft', size: '' },
+          dining: 'Dining (open to living room)', patio: PATIO_STAR, garageSize: '18\'9" x 19\'4"',
+          pdfUrl: 'https://www.drhorton.com/-/media/drhorton/productcatalog/495-raleigh/49730-collins-ridge/497290000-collins-ridge-40/2363/robie_-_5bd_-_tradition_series_nofp_collins_ridge.jpg?rev=31b160785fae4069ba46c82d81b30064&hash=AAB5D6C2FDB45AA3DE0B73E23E037B3B' },
+        { name: 'Sierra', type: 'sf', rearLoad: false, stories: 2, bedrooms: 4, bathrooms: 2.5, sqft: 2395,
+          primaryDown: true, bedroomDown: true, laundry: '1st',
+          features: ['upstairs', 'islandSink'],
+          primarySize: '12\'10" x 14\'', livingSize: '14\'1" x 14\'3"', upstairs: { type: 'Upstairs Living', size: '27\'3" x 14\'8"' },
+          dining: 'Dining · 16\' x 7\'10"', patio: PATIO_STAR, garageSize: '18\'7" x 20\'',
+          pdfUrl: 'https://www.drhorton.com/-/media/drhorton/productcatalog/495-raleigh/49730-collins-ridge/497290000-collins-ridge-40/2396/sierra_-_4bd_-_tradition_series_nofp_collins_ridge.jpg?rev=cb93248c85cb4719ba9ebd8c3f208f8d&hash=D9965558919D5D0BF2EBE4C1686BBE56' },
+        { name: 'Linville', type: 'th', rearLoad: false, stories: 2, bedrooms: 4, bathrooms: 3, sqft: 2439,
+          primaryDown: false, bedroomDown: true, laundry: '2nd',
+          features: ['loft', 'pantry', 'gardenTub', 'islandSink'],
+          primarySize: '14\'4" x 20\'2"', livingSize: '13\' x 16\'8"', upstairs: { type: 'Loft', size: '13\' x 12\'' },
+          dining: 'Dining room · 13\' x 12\'6"', patio: PATIO_STAR, garageSize: '18\'6" x 20\'',
+          note: 'Side windows on end units only', pdfUrl: 'https://www.drhorton.com/-/media/drhorton/productcatalog/495-raleigh/49727-collins-ridge/497280000-collins-ridge-26-th/t203/linville_-_tradition_series_collins_ridge.jpg?rev=7273d2fe51114dedad392ac41007f977&hash=09FA7A0E212851A5E0604F48A21E210A' },
+        { name: 'Hayden', type: 'sf', rearLoad: false, stories: 2, bedrooms: 5, bathrooms: 3, sqft: 2511,
+          primaryDown: false, bedroomDown: true, laundry: '2nd',
+          features: ['flex', 'loft', 'pantry', 'islandSink'],
+          primarySize: '13\'1" x 20\'', livingSize: '15\'1" x 15\'5"', upstairs: { type: 'Loft', size: '11\' x 12\'' },
+          flexSize: '12\'1" x 11\'5"', flexNote: 'optional French doors',
+          dining: 'Breakfast area', patio: PATIO_STAR, garageSize: '20\'5" x 20\'',
+          pdfUrl: 'https://www.drhorton.com/-/media/drhorton/productcatalog/495-raleigh/49730-collins-ridge/497300000-collins-ridge-50/2512/hayden_-_5bd_-_tradition_series_nofp_collins_ridge.jpg?rev=55032b6e74204d1dab990810424b865b&hash=27C8EAB08A63CEF11616E764843400E5' },
+        { name: 'Alec', type: 'sf', rearLoad: true, stories: 2, bedrooms: 4, bathrooms: 3, sqft: 2518,
+          primaryDown: false, bedroomDown: true, laundry: '2nd',
+          features: ['loft', 'pantry', 'tray', 'covered', 'islandSink'], patioStar: true,
+          primarySize: '21\' x 14\'10"', livingSize: '15\'6" x 14\'5.5"', upstairs: { type: 'Loft', size: '15\'6" x 11\'6"' },
+          dining: 'Dining · 13\'6" x 12\'2"', patio: COVERED_STAR, garageSize: '21\' x 20\'4"',
+          ceiling: 'Tray ceiling in primary', pdfUrl: 'https://www.drhorton.com/-/media/drhorton/productcatalog/495-raleigh/49730-collins-ridge/497300000-collins-ridge-50/2531/alec_rl_-_tradition_series_nofp_collins_ridge.jpg?rev=294f9cc2e37d45f587e71c29559bca90&hash=9F3389D1950B8BDD446A600CB555EDE8' },
+        { name: 'Landon', type: 'sf', rearLoad: false, stories: 2, bedrooms: 4, bathrooms: 3, sqft: 2570,
+          primaryDown: false, bedroomDown: true, laundry: '2nd',
+          features: ['upstairs', 'pantry', 'gardenTub', 'islandSink'],
+          primarySize: '16\'6" x 18\'9"', livingSize: '15\'3" x 14\'11"', upstairs: { type: 'Upstairs Living', size: '12\'6" x 11\'6"' },
+          dining: 'Dining · 15\'3" x 13\'', patio: PATIO_STAR, garageSize: '18\'7" x 20\'',
+          pdfUrl: 'https://www.drhorton.com/-/media/drhorton/productcatalog/495-raleigh/49730-collins-ridge/497290000-collins-ridge-40/2585/landon_-_tradition_series_nofp_collins_ridge.jpg?rev=bb0d57c0bc994777816dcccc7c038470&hash=487A56F575101EC5B9A5DAA8BE24823E' },
+        { name: 'Calhoun', type: 'sf', rearLoad: true, stories: 2, bedrooms: 4, bathrooms: 3.5, sqft: 2628,
+          primaryDown: true, dualPrimary: true, bedroomDown: true, laundry: '2nd',
+          features: ['dining', 'pantry', 'tray', 'gardenTub', 'covered', 'islandSink'], patioStar: true,
+          primarySize: '1st floor 12\' x 19\'11" · 2nd floor 13\' x 16\'', livingSize: '17\'4" x 16\'2"', upstairs: null,
+          dining: 'Dining room 11\'6" x 12\'3" + breakfast area', patio: COVERED_STAR, garageSize: '19\'5" x 21\'6"',
+          ceiling: 'Tray ceiling in 2nd-floor primary', pdfUrl: 'https://www.drhorton.com/-/media/drhorton/productcatalog/495-raleigh/49730-collins-ridge/497290000-collins-ridge-40/2628/calhoun_rl_-_tradition_series_nofp_collins_ridge.jpg?rev=a842196fca7443869bd4ffcd9aa1b014&hash=C3B0586C9EDDF08C992321C2F3298269' },
+        { name: 'Jackson', type: 'sf', rearLoad: true, stories: 2, bedrooms: 5, bathrooms: 3, sqft: 2637,
+          primaryDown: false, bedroomDown: true, laundry: '2nd',
+          features: ['dining', 'pantry', 'butler', 'tray', 'covered', 'islandSink'], patioStar: true,
+          primarySize: '15\'4.5" x 19\'5.5"', livingSize: '15\'10" x 19\'9"', upstairs: null,
+          dining: 'Dining room 11\'10.5" x 15\'6" + breakfast area', patio: COVERED_STAR, garageSize: '20\' x 22\'',
+          ceiling: 'Tray ceiling in primary', pdfUrl: 'https://www.drhorton.com/-/media/drhorton/productcatalog/495-raleigh/49730-collins-ridge/497300000-collins-ridge-50/2638/jackson_rl_-_tradition_series_nofp_collins_ridge.jpg?rev=efd21e7878394185999eef1d9642f2c6&hash=FE7C24B467EE7CB7039E5EF49C7C0597' },
+        { name: 'Hanover', type: 'sf', rearLoad: false, stories: 2, bedrooms: 4, bathrooms: 2.5, sqft: 2804,
+          primaryDown: false, bedroomDown: false, laundry: '2nd',
+          features: ['flex', 'loft', 'pantry'],
+          primarySize: '19\'4" x 13\'8"', livingSize: '18\' x 20\'', upstairs: { type: 'Loft', size: '11\'8" x 18\'4"' },
+          flexSize: '12\' x 20\'', dining: 'Dining area (open to kitchen &amp; living room)', patio: PATIO_STAR, garageSize: '20\' x 20\'4"',
+          options: [{ short: 'Bed 5 option', badge: 'Opt: Bed 5 + Bath instead of Flex', label: 'Bedroom 5 (12\' x 14\') + walk-in closet + full bath instead of the flex room &amp; powder room', bedrooms: 5, bathrooms: 3, sqft: 2818, bedroomDown: true, removes: ['flex'] }],
+          pdfUrl: 'https://www.drhorton.com/-/media/drhorton/productcatalog/495-raleigh/49730-collins-ridge/497300000-collins-ridge-50/2804/hanover_-_4-5bd_-_tradition_series_nofp__collins_ridge.jpg?rev=57dd88f1dbf0450ba43f502fb0d3ef55&hash=F026115819D8FEE25EDE7543EE5F1DD4' }
+    ];
+
+    // Tap-cycle chips: 1 = must have, -1 = don't want
+    const TRI = {
+        bedDown:    { label: 'Bedroom on 1st Floor', missing: 'No bedroom on 1st floor', present: 'Has a bedroom on 1st floor' },
+        dual:       { label: 'Dual Primary', missing: 'No dual primary', present: 'Has dual primary' },
+        flex:       { label: 'Flex / Office', missing: 'No flex / office', present: 'Has a flex / office' },
+        loft:       { label: 'Loft', missing: 'No loft', present: 'Has a loft' },
+        upstairs:   { label: 'Upstairs Living', missing: 'No upstairs living', present: 'Has upstairs living' },
+        dining:     { label: 'Separate Dining Room', missing: 'No separate dining room', present: 'Has a separate dining room' },
+        pantry:     { label: 'Pantry', missing: 'No pantry', present: 'Has a pantry' },
+        butler:     { label: 'Butler\'s Pantry', missing: 'No butler\'s pantry', present: 'Has a butler\'s pantry' },
+        covered:    { label: 'Covered Patio', missing: 'No covered patio', present: 'Has a covered patio' },
+        islandSink: { label: 'Sink in Island', missing: 'Sink not in island', present: 'Sink is in the island' },
+        gardenTub:  { label: 'Garden Tub', missing: 'No garden tub', present: 'Has a garden tub' },
+        ceiling:    { label: 'Tray / Vaulted Ceiling', missing: 'No tray / vaulted ceiling', present: 'Has a tray / vaulted ceiling' }
+    };
+
+    const ICONS = {
+        townhome: '<path d="M2 21V10l5-4 5 4v11"/><path d="M12 21V10l5-4 5 4v11"/><path d="M1 21h22"/>',
+        rear: '<path d="M3 21V9l9-6 9 6v12"/><path d="M7 21v-8h10v8"/><path d="M7 17h10"/>',
+        story1: '<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/>',
+        bed: '<path d="M2 4v16"/><path d="M2 8h18a2 2 0 0 1 2 2v10"/><path d="M2 17h20"/><path d="M6 8v9"/>',
+        flex: '<rect width="20" height="14" x="2" y="7" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>',
+        loft: '<path d="M3 21h5v-5h5v-5h5V6h3"/>',
+        sofa: '<path d="M20 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v3"/><path d="M2 16a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a2 2 0 0 0-4 0v2H6v-2a2 2 0 0 0-4 0z"/><path d="M4 18v2"/><path d="M20 18v2"/>',
+        dining: '<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/>',
+        umbrella: '<path d="M12 2v1"/><path d="M3 12a9 9 0 0 1 18 0z"/><path d="M12 12v8a2 2 0 0 0 4 0"/>',
+        option: '<path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/>'
+    };
+
+    const DEFAULTS = { hometype: 'any', stories: 'any', primary: 'any', garage: 'any', laundry: 'any', beds: [], baths: [], tri: {}, price: [350000, 500000], sqft: [1500, 3000] };
+    let state = freshState();
+
+    function freshState() {
+        const s = JSON.parse(JSON.stringify(DEFAULTS));
+        s.sort = 'sqft'; s.selected = []; s.showRuled = false; s.preparedFor = ''; s.msg = '';
+        return s;
+    }
+
+    // ---------- helpers ----------
+    const $ = sel => document.querySelector(sel);
+    const has = (list, f) => list.indexOf(f) !== -1;
+    const pick = (v, d) => (v === undefined || v === null) ? d : v;
+    const fmtK = v => '$' + Math.round(v / 1000) + 'k';
+    const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const priceText = p => modelPrices[p.name] ? 'Starting in the $' + Math.round(modelPrices[p.name] / 1000) + 's' : '';
+    const planByName = n => floorPlans.find(p => p.name === n);
+
+    function icon(name) {
+        return '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICONS[name] + '</svg>';
+    }
+
+    function rangeText(p, key, fmt) {
+        const vals = [p[key]].concat((p.options || []).map(o => o[key]).filter(v => v !== undefined));
+        const lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
+        return lo === hi ? fmt(lo) : fmt(lo) + '–' + fmt(hi);
+    }
+
+    const specLine = p => rangeText(p, 'bedrooms', v => v) + ' Bed | ' + rangeText(p, 'bathrooms', v => v) + ' Bath | 2 Car | ' +
+        (p.stories === 1 ? '1 Story' : '2 Story') + ' | ' + rangeText(p, 'sqft', v => v.toLocaleString()) + ' Sq. Ft.';
+
+    // Base layout plus each builder option as its own configuration
+    function configsFor(p) {
+        const base = { option: null, bedrooms: p.bedrooms, bathrooms: p.bathrooms, sqft: p.sqft, features: p.features, bedroomDown: p.bedroomDown };
+        return [base].concat((p.options || []).map(o => ({
+            option: o,
+            bedrooms: pick(o.bedrooms, p.bedrooms),
+            bathrooms: pick(o.bathrooms, p.bathrooms),
+            sqft: pick(o.sqft, p.sqft),
+            features: p.features.filter(f => !has(o.removes || [], f)),
+            bedroomDown: pick(o.bedroomDown, p.bedroomDown)
+        })));
+    }
+
+    function hasTri(k, p, cfg) {
+        if (k === 'bedDown') return !!cfg.bedroomDown;
+        if (k === 'dual') return !!p.dualPrimary;
+        if (k === 'ceiling') return has(cfg.features, 'tray') || has(cfg.features, 'vaulted');
+        return has(cfg.features, k);
+    }
+
+    // ---------- criteria (built from current state) ----------
+    function criteria() {
+        const c = [];
+        if (state.hometype !== 'any') c.push({ id: 'hometype', wish: state.hometype === 'sf' ? 'Single-family' : 'Townhome',
+            test: p => p.type === state.hometype, reason: p => p.type === 'th' ? 'Townhome' : 'Single-family' });
+        if (state.price[0] !== DEFAULTS.price[0] || state.price[1] !== DEFAULTS.price[1]) {
+            const lo = state.price[0], hi = state.price[1];
+            c.push({ id: 'price', wish: fmtK(lo) + '–' + fmtK(hi),
+                test: p => { const v = modelPrices[p.name] || 0; return v >= lo && v <= hi; },
+                reason: p => { const v = modelPrices[p.name] || 0; return 'Starts at ' + fmtK(v) + (v > hi ? ' (over budget)' : ' (below range)'); } });
+        }
+        if (state.beds.length) c.push({ id: 'beds', wish: state.beds.join(' or ') + ' beds',
+            test: (p, cfg) => has(state.beds, cfg.bedrooms), reason: (p, cfg) => cfg.bedrooms + ' beds' });
+        if (state.baths.length) c.push({ id: 'baths', wish: state.baths.join(' or ') + ' baths',
+            test: (p, cfg) => has(state.baths, cfg.bathrooms), reason: (p, cfg) => cfg.bathrooms + ' baths' });
+        if (state.stories !== 'any') c.push({ id: 'stories', wish: state.stories + ' story',
+            test: p => String(p.stories) === state.stories, reason: p => p.stories + ' story' });
+        if (state.primary !== 'any') c.push({ id: 'primary', wish: state.primary === 'down' ? 'Primary on 1st floor' : 'Primary on 2nd floor',
+            test: p => state.primary === 'down' ? p.primaryDown : (!p.primaryDown || !!p.dualPrimary),
+            reason: () => state.primary === 'down' ? 'Primary is upstairs' : 'Primary is downstairs' });
+        Object.keys(TRI).forEach(k => {
+            const v = state.tri[k];
+            if (!v) return;
+            c.push({ id: 'tri:' + k, neg: v < 0, wish: TRI[k].label,
+                test: (p, cfg) => hasTri(k, p, cfg) === (v > 0), reason: () => v > 0 ? TRI[k].missing : TRI[k].present });
+        });
+        if (state.garage !== 'any') c.push({ id: 'garage', wish: state.garage === 'rear' ? 'Rear-load garage' : 'Front-load garage',
+            test: p => (p.rearLoad ? 'rear' : 'front') === state.garage, reason: p => p.rearLoad ? 'Rear-load garage' : 'Front-load garage' });
+        if (state.laundry !== 'any') c.push({ id: 'laundry', wish: 'Laundry on ' + state.laundry + ' floor',
+            test: p => p.laundry === state.laundry, reason: p => 'Laundry on ' + p.laundry + ' floor' });
+        if (state.sqft[0] !== DEFAULTS.sqft[0] || state.sqft[1] !== DEFAULTS.sqft[1]) {
+            const lo = state.sqft[0], hi = state.sqft[1];
+            c.push({ id: 'sqft', wish: lo.toLocaleString() + '–' + hi.toLocaleString() + ' sq ft',
+                test: (p, cfg) => cfg.sqft >= lo && cfg.sqft <= hi, reason: (p, cfg) => cfg.sqft.toLocaleString() + ' sq ft' });
+        }
+        return c;
+    }
+
+    function evaluate(p, cs) {
+        const cfgs = configsFor(p);
+        let best = null;
+        cfgs.forEach(cfg => {
+            const fails = cs.filter(c => !c.test(p, cfg));
+            if (!best || fails.length < best.fails.length) best = { plan: p, cfg: cfg, fails: fails };
+        });
+        best.hints = [];
+        if (best.fails.length) {
+            if (best.cfg.option) best.hints.push('Closest with the ' + best.cfg.option.short);
+            cfgs.forEach(cfg => {
+                if (cfg === best.cfg || !cfg.option) return;
+                if (!best.fails.some(c => c.test(p, cfg))) return;
+                const newFails = cs.filter(c => !c.test(p, cfg));
+                best.hints.push('With the ' + cfg.option.short + ': ' + newFails.map(c => c.reason(p, cfg)).join(', '));
+            });
+        }
+        return best;
+    }
+
+    function clearCriterion(id) {
+        if (id.indexOf('tri:') === 0) delete state.tri[id.slice(4)];
+        else if (id === 'price' || id === 'sqft') state[id] = DEFAULTS[id].slice();
+        else if (id === 'beds' || id === 'baths') state[id] = [];
+        else state[id] = 'any';
+        render();
+    }
+
+    function resetAll() {
+        state = freshState();
+        closeSheet();
+        render();
+    }
+
+    // ---------- filter panel ----------
+    function segHTML(key, title, opts) {
+        return '<div class="fgroup"><h3>' + title + '</h3><div class="seg" data-seg="' + key + '">' +
+            opts.map(o => '<button data-val="' + o[0] + '">' + o[1] + '</button>').join('') + '</div></div>';
+    }
+    function multiHTML(key, title, opts) {
+        return '<div class="fgroup"><h3>' + title + '</h3><div class="chips">' +
+            opts.map(o => '<button class="chip" data-multi="' + key + '" data-val="' + o[0] + '">' + o[1] + '</button>').join('') + '</div></div>';
+    }
+    function triHTML(title, keys) {
+        return '<div class="fgroup"><h3>' + title + '</h3><div class="chips">' +
+            keys.map(k => '<button class="chip" data-tri="' + k + '"><span class="mark">+</span>' + TRI[k].label + '</button>').join('') + '</div></div>';
+    }
+    function rangeHTML(key, title, min, max, step) {
+        const r = end => '<div class="range-row"><div class="rl"><span>' + end + '</span><span id="' + key + end + 'Val"></span></div>' +
+            '<input type="range" id="' + key + end + '" min="' + min + '" max="' + max + '" step="' + step + '"></div>';
+        return '<div class="fgroup"><h3>' + title + '</h3>' + r('Min') + r('Max') + '</div>';
+    }
+
+    function buildFilters() {
+        $('#filters').innerHTML =
+            '<div class="filters-head"><h2>What matters to them</h2><button class="link-btn" data-reset="1">Start over</button></div>' +
+            segHTML('hometype', 'Home Type', [['any', 'Any'], ['sf', 'Single-Family'], ['th', 'Townhome']]) +
+            rangeHTML('price', 'Budget (starting price)', 350000, 500000, 5000) +
+            multiHTML('beds', 'Bedrooms', [[3, '3'], [4, '4'], [5, '5']]) +
+            multiHTML('baths', 'Bathrooms', [[2, '2'], [2.5, '2.5'], [3, '3'], [3.5, '3.5']]) +
+            segHTML('stories', 'Stories', [['any', 'Any'], ['1', '1 Story'], ['2', '2 Story']]) +
+            segHTML('primary', 'Primary Bedroom', [['any', 'Any'], ['down', '1st Floor'], ['up', '2nd Floor']]) +
+            '<p class="hint">Tap once = <b>✓ must have</b> · twice = <i>✕ don\'t want</i> · three times = clear</p>' +
+            triHTML('Main Floor', ['bedDown', 'dual']) +
+            triHTML('Spaces', ['flex', 'loft', 'upstairs', 'dining', 'pantry', 'butler', 'covered']) +
+            triHTML('Kitchen &amp; Bath', ['islandSink', 'gardenTub', 'ceiling']) +
+            segHTML('garage', 'Garage (all 2-car)', [['any', 'Any'], ['front', 'Front Load'], ['rear', 'Rear Load']]) +
+            segHTML('laundry', 'Laundry', [['any', 'Any'], ['1st', '1st Floor'], ['2nd', '2nd Floor']]) +
+            rangeHTML('sqft', 'Square Feet', 1500, 3000, 50);
+    }
+
+    function renderControls() {
+        document.querySelectorAll('[data-seg]').forEach(g =>
+            g.querySelectorAll('button').forEach(b => b.classList.toggle('on', state[g.dataset.seg] === b.dataset.val)));
+        document.querySelectorAll('[data-multi]').forEach(b => b.classList.toggle('on', has(state[b.dataset.multi], Number(b.dataset.val))));
+        document.querySelectorAll('[data-tri]').forEach(b => {
+            const v = state.tri[b.dataset.tri] || 0;
+            b.classList.toggle('yes', v === 1);
+            b.classList.toggle('no', v === -1);
+            b.querySelector('.mark').textContent = v === 1 ? '✓' : (v === -1 ? '✕' : '+');
+        });
+        ['price', 'sqft'].forEach(k => {
+            const lo = $('#' + k + 'Min'), hi = $('#' + k + 'Max');
+            if (Number(lo.value) !== state[k][0]) lo.value = state[k][0];
+            if (Number(hi.value) !== state[k][1]) hi.value = state[k][1];
+            const f = k === 'price' ? fmtK : (v => v.toLocaleString());
+            $('#' + k + 'MinVal').textContent = f(state[k][0]);
+            $('#' + k + 'MaxVal').textContent = f(state[k][1]);
+        });
+        document.querySelectorAll('#sortSeg button').forEach(b => b.classList.toggle('on', state.sort === b.dataset.sort));
+    }
+
+    // ---------- results ----------
+    function hitSet() {
+        const h = new Set();
+        Object.keys(state.tri).forEach(k => { if (state.tri[k] === 1) h.add(k); });
+        if (state.tri.bedDown === 1 || state.primary === 'down') ['primaryDown', 'dual', 'story1', 'bedDown'].forEach(x => h.add(x));
+        if (state.hometype === 'th') h.add('townhome');
+        if (state.garage === 'rear') h.add('rear');
+        if (state.stories === '1') h.add('story1');
+        return h;
+    }
+
+    function glanceBadges(p, hits) {
+        const out = [];
+        const add = (cls, ic, text, key) => out.push('<span class="glance ' + cls + (hits.has(key) ? ' hit' : '') + '">' + icon(ic) + text + '</span>');
+        if (p.type === 'th') add('g-type', 'townhome', 'Townhome', 'townhome');
+        if (p.rearLoad) add('g-type', 'rear', 'Rear-Load Garage', 'rear');
+        if (p.stories === 1) add('g-main', 'story1', '1 Story', 'story1');
+        else if (p.dualPrimary) add('g-main', 'bed', 'Dual Primary (1st &amp; 2nd)', 'dual');
+        else if (p.primaryDown) add('g-main', 'bed', 'Primary Down', 'primaryDown');
+        else if (p.bedroomDown) add('g-main', 'bed', 'Bedroom Down', 'bedDown');
+        if (has(p.features, 'flex')) add('g-space', 'flex', 'Flex / Office', 'flex');
+        if (has(p.features, 'loft')) add('g-space', 'loft', 'Loft', 'loft');
+        if (has(p.features, 'upstairs')) add('g-space', 'sofa', 'Upstairs Living', 'upstairs');
+        if (has(p.features, 'dining')) add('g-space', 'dining', 'Dining Room', 'dining');
+        if (has(p.features, 'covered')) add('g-space', 'umbrella', p.patioStar ? 'Covered Patio*' : 'Covered Patio', 'covered');
+        (p.options || []).forEach(o => add('g-opt', 'option', o.badge, 'option'));
+        return out.join('');
+    }
+
+    function renderWish(cs) {
+        const w = $('#wish');
+        if (!cs.length) {
+            w.innerHTML = '<span class="lbl">Looking for</span><span class="empty">Nothing yet. Tap what matters to them.</span>';
+            return;
+        }
+        w.innerHTML = '<span class="lbl">Looking for</span>' +
+            cs.map(c => '<button class="wpill' + (c.neg ? ' no' : '') + '" data-clear="' + c.id + '">' + (c.neg ? '✕ ' : '') + c.wish + '<span class="x">×</span></button>').join('') +
+            '<button class="link-btn" data-reset="1">Start over</button>';
+    }
+
+    function renderCards(matches) {
+        const hits = hitSet();
+        $('#cards').innerHTML = matches.length ? matches.map(e => {
+            const p = e.plan;
+            const sel = has(state.selected, p.name);
+            return '<div class="card' + (sel ? ' selected' : '') + (p.soldOut ? ' sold' : '') + '" data-plan="' + p.name + '">' +
+                (p.soldOut ? '<div class="sold-badge">Sold Out</div>' : '<div class="check">✓</div>') +
+                '<div class="card-top"><div class="card-name">' + p.name + '</div><div class="card-price">' + priceText(p) + '</div></div>' +
+                '<div class="card-specs">' + specLine(p) + '</div>' +
+                '<div class="glance-row">' + glanceBadges(p, hits) + '</div>' +
+                (e.cfg.option ? '<div class="opt-note">Fits with option: ' + e.cfg.option.label + '</div>' : '') +
+                '</div>';
+        }).join('') : '<div class="empty">Nothing matches everything on their list.<br>The closest plans are listed under <b>Ruled out</b> below.</div>';
+    }
+
+    function renderRuled(ruled, matchCount) {
+        const r = $('#ruled');
+        if (!ruled.length) { r.innerHTML = ''; return; }
+        const open = state.showRuled || matchCount === 0;
+        r.innerHTML = '<button class="ruled-toggle" data-toggle-ruled="1"><span>Ruled out (' + ruled.length + ') · see why</span><span>' + (open ? '▴' : '▾') + '</span></button>' +
+            (open ? '<p class="ruled-hint">Closest first. Tap a reason to drop that requirement.</p><div class="ruled-list">' + ruled.map(e => {
+                const p = e.plan, sel = has(state.selected, p.name);
+                return '<div class="rcard"><span class="rn">' + p.name + '</span><span class="rs">' + rangeText(p, 'sqft', v => v.toLocaleString()) + ' sq ft · from ' + fmtK(modelPrices[p.name] || 0) + '</span>' +
+                    (p.soldOut ? '' : '<button class="rsel' + (sel ? ' on' : '') + '" data-select="' + p.name + '">' + (sel ? '✓ In compare' : '+ Compare') + '</button>') +
+                    '<div class="reasons">' + e.fails.map(c => '<button class="reason" data-clear="' + c.id + '">✕ ' + c.reason(p, e.cfg) + '</button>').join('') + '</div>' +
+                    e.hints.map(h => '<div class="tradeoff">' + h + '</div>').join('') + '</div>';
+            }).join('') + '</div>' : '');
+    }
+
+    function renderBar() {
+        const bar = $('#cbar'), n = state.selected.length;
+        bar.classList.toggle('show', n > 0);
+        if (!n) { bar.innerHTML = ''; return; }
+        bar.innerHTML = '<div class="cbar-inner">' +
+            state.selected.map(name => '<span class="slot">' + name + '<button data-remove="' + name + '" aria-label="Remove ' + name + '">✕</button></span>').join('') +
+            (n === 1 ? '<span class="slot empty-slot">+ tap one more to compare</span>' : '') +
+            '<span class="cbar-msg">' + (state.msg || '') + '</span><span class="spacer"></span>' +
+            '<button class="btn btn-ghost" data-act="print">Print</button>' +
+            '<button class="btn btn-primary" data-act="compare">' + (n === 2 ? 'Compare' : 'Details') + '</button></div>';
+    }
+
+    function render() {
+        renderControls();
+        const cs = criteria();
+        const evals = floorPlans.map(p => evaluate(p, cs));
+        const order = (a, b) => state.sort === 'price'
+            ? (modelPrices[a.plan.name] || 0) - (modelPrices[b.plan.name] || 0)
+            : a.plan.sqft - b.plan.sqft;
+        const matches = evals.filter(e => !e.fails.length).sort(order);
+        const ruled = evals.filter(e => e.fails.length).sort((a, b) => a.fails.length - b.fails.length || order(a, b));
+        renderWish(cs);
+        $('#resCount').textContent = matches.length === 1 ? '1 plan fits' : matches.length + ' plans fit';
+        renderCards(matches);
+        renderRuled(ruled, matches.length);
+        renderBar();
+    }
+
+    // ---------- selection ----------
+    function toggleSelect(name) {
+        const p = planByName(name);
+        if (!p || p.soldOut) return;
+        if (has(state.selected, name)) state.selected = state.selected.filter(n => n !== name);
+        else if (state.selected.length < 2) state.selected.push(name);
+        else { flash('Compare holds 2 plans. Remove one first.'); return; }
+        render();
+    }
+
+    function flash(msg) {
+        state.msg = msg;
+        renderBar();
+        clearTimeout(flash.t);
+        flash.t = setTimeout(() => { state.msg = ''; renderBar(); }, 2600);
+    }
+
+    // ---------- compare sheet ----------
+    const SECTIONS = [
+        ['Overview', [
+            ['Starting price', p => priceText(p) || '—'],
+            ['Bedrooms', p => String(rangeText(p, 'bedrooms', v => v))],
+            ['Bathrooms', p => String(rangeText(p, 'bathrooms', v => v))],
+            ['Square feet', p => rangeText(p, 'sqft', v => v.toLocaleString())],
+            ['Stories', p => p.stories === 1 ? '1 Story' : '2 Story'],
+            ['Home type', p => p.type === 'sf' ? 'Single-Family' : 'Townhome']
+        ]],
+        ['Layout', [
+            ['Primary bedroom', p => p.dualPrimary ? 'Dual · ' + p.primarySize : (p.primaryDown ? '1st floor' : '2nd floor') + (p.primarySize ? ' · ' + p.primarySize : '')],
+            ['Bedroom on 1st floor', p => p.stories === 1 ? 'Yes (1 story)' : p.primaryDown ? 'Yes (primary suite)' : p.bedroomDown ? 'Yes, with full bath'
+                : ((p.options || []).some(o => o.bedroomDown) ? 'With the ' + p.options.find(o => o.bedroomDown).short + ' (+ full bath)' : 'No')],
+            ['Living room', p => '1st floor' + (p.livingSize ? ' · ' + p.livingSize : '')],
+            ['Upstairs space', p => p.upstairs ? p.upstairs.type + (p.upstairs.size ? ' · ' + p.upstairs.size : '') : '—'],
+            ['Flex / office', p => has(p.features, 'flex') ? 'Yes' + (p.flexSize ? ' · ' + p.flexSize : '') + (p.flexNote ? ' · ' + p.flexNote : '') : 'No'],
+            ['Dining', p => p.dining]
+        ]],
+        ['Kitchen & Bath', [
+            ['Pantry', p => has(p.features, 'butler') ? 'Yes + butler\'s pantry' : (has(p.features, 'pantry') ? 'Yes' : 'No')],
+            ['Sink in island', p => has(p.features, 'islandSink') ? 'Yes' : 'No'],
+            ['Primary bath', p => has(p.features, 'gardenTub') ? 'Garden tub + separate shower' : 'No garden tub'],
+            ['Ceiling', p => p.ceiling || '—']
+        ]],
+        ['Outside & Systems', [
+            ['Garage', p => '2 car · ' + (p.rearLoad ? 'Rear load' : 'Front load') + (p.garageSize ? ' · ' + p.garageSize : '')],
+            ['Patio', p => p.patio],
+            ['Laundry', p => p.laundry + ' floor'],
+            ['Water heater', p => p.type === 'sf' ? 'Tankless' : 'Standard'],
+            ['Stove exhaust', p => p.type === 'sf' ? 'Vented outside' : 'Not vented outside']
+        ]],
+        ['Options & Notes', [
+            ['Builder options', p => (p.options || []).map(o => o.label).join('; ') || '—'],
+            ['Note', p => p.note || '—']
+        ]]
+    ];
+
+    function compareTable(plans, printMode) {
+        let h = '<table class="ctable"><thead><tr><th></th>' + plans.map(p => '<th>' + p.name + '</th>').join('') + '</tr></thead><tbody>';
+        SECTIONS.forEach(sec => {
+            h += '<tr class="sec"><th colspan="' + (plans.length + 1) + '">' + sec[0].replace('&', '&amp;') + '</th></tr>';
+            sec[1].forEach(row => {
+                const vals = plans.map(row[1]);
+                if (vals.every(v => v === '—')) return;
+                const diff = plans.length === 2 && vals[0] !== vals[1];
+                h += '<tr' + (diff ? ' class="diff"' : '') + '><th>' + row[0] + '</th>' + vals.map(v => '<td>' + v + '</td>').join('') + '</tr>';
+            });
+        });
+        if (!printMode) h += '<tr><th>Floor plan</th>' + plans.map(p => '<td>' + (p.pdfUrl ? '<a href="' + p.pdfUrl + '" target="_blank" rel="noopener">Open floor plan ↗</a>' : '—') + '</td>').join('') + '</tr>';
+        return h + '</tbody></table>';
+    }
+
+    function openSheet() {
+        const plans = state.selected.map(planByName);
+        if (!plans.length) return;
+        $('#sheet').innerHTML = '<div class="sheet-inner" role="dialog" aria-modal="true">' +
+            '<div class="sheet-head"><h2>' + (plans.length === 2 ? plans[0].name + ' vs. ' + plans[1].name : plans[0].name) + '</h2>' +
+            '<input id="preparedFor" placeholder="Prepared for (optional)" value="' + esc(state.preparedFor) + '">' +
+            '<button class="btn btn-ghost" data-act="print">Print</button><button class="btn btn-primary" data-act="close">Done</button></div>' +
+            '<div class="sheet-body">' + (plans.length === 2 ? '<p class="legend-diff"><span>Highlighted</span> rows are where the two plans differ.</p>' : '') +
+            compareTable(plans, false) + '</div></div>';
+        $('#sheet').classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeSheet() {
+        $('#sheet').classList.remove('show');
+        $('#sheet').innerHTML = '';
+        document.body.style.overflow = '';
+    }
+
+    // ---------- print ----------
+    function printSheet() {
+        const plans = state.selected.map(planByName);
+        if (!plans.length) return;
+        const cs = criteria();
+        const date = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        $('#printArea').innerHTML =
+            '<section class="ppage"><div class="p-head"><div><div class="p-title">Collins Ridge · ' + (plans.length === 2 ? 'Floor Plan Comparison' : plans[0].name + ' Floor Plan') + '</div>' +
+            '<div class="p-sub">' + (state.preparedFor ? 'Prepared for ' + esc(state.preparedFor) + ' · ' : '') + date + '</div></div>' +
+            '<div class="p-rep">' + SALES_REP + '</div></div>' +
+            (cs.length ? '<div class="p-wish"><b>What matters to you:</b> ' + cs.map(c => (c.neg ? 'No ' : '') + c.wish).join(' · ') + '</div>' : '') +
+            compareTable(plans, true) +
+            '<p class="p-fine">Pricing, features and availability are subject to change. Square footage and room sizes are approximate. Plan details from D.R. Horton plan sheets.</p></section>' +
+            plans.filter(p => p.pdfUrl).map(p => '<section class="ppage"><div class="p-title">' + p.name + '</div><img src="' + p.pdfUrl + '" alt="' + p.name + ' floor plan"></section>').join('');
+        const imgs = Array.prototype.slice.call(document.querySelectorAll('#printArea img'));
+        const loaded = Promise.all(imgs.map(img => img.complete ? Promise.resolve() : new Promise(res => { img.onload = res; img.onerror = res; })));
+        const timeout = new Promise(res => setTimeout(res, 5000));
+        Promise.race([loaded, timeout]).then(() => setTimeout(() => window.print(), 150));
+    }
+
+    // ---------- events ----------
+    function onRange(e) {
+        const id = e.target.id || '';
+        const key = id.indexOf('price') === 0 ? 'price' : (id.indexOf('sqft') === 0 ? 'sqft' : null);
+        if (!key) return;
+        const lo = $('#' + key + 'Min'), hi = $('#' + key + 'Max');
+        let a = Number(lo.value), b = Number(hi.value);
+        if (a > b) { if (id.slice(-3) === 'Min') { b = a; hi.value = b; } else { a = b; lo.value = a; } }
+        state[key] = [a, b];
+        render();
+    }
+
+    document.addEventListener('click', e => {
+        const t = e.target.closest('button, .card');
+        if (!t) {
+            if (e.target.id === 'sheet') closeSheet();
+            return;
+        }
+        const d = t.dataset;
+        if (t.classList.contains('card')) return toggleSelect(d.plan);
+        if (d.reset) return resetAll();
+        if (d.clear) return clearCriterion(d.clear);
+        if (d.toggleRuled) { state.showRuled = !state.showRuled; return render(); }
+        if (d.select) return toggleSelect(d.select);
+        if (d.remove) { state.selected = state.selected.filter(n => n !== d.remove); return render(); }
+        if (d.sort) { state.sort = d.sort; return render(); }
+        if (d.act === 'compare') return openSheet();
+        if (d.act === 'print') return printSheet();
+        if (d.act === 'close') return closeSheet();
+        if (d.multi) {
+            const k = d.multi, v = Number(d.val);
+            state[k] = has(state[k], v) ? state[k].filter(x => x !== v) : state[k].concat(v);
+            return render();
+        }
+        if (d.tri) {
+            const cur = state.tri[d.tri] || 0, next = cur === 0 ? 1 : (cur === 1 ? -1 : 0);
+            if (next) state.tri[d.tri] = next; else delete state.tri[d.tri];
+            return render();
+        }
+        const seg = t.parentElement && t.parentElement.dataset.seg;
+        if (seg) { state[seg] = d.val; return render(); }
+    });
+    document.addEventListener('input', e => {
+        if (e.target.id === 'preparedFor') { state.preparedFor = e.target.value; return; }
+        if (e.target.type === 'range') onRange(e);
+    });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
+
+    $('#version').textContent = VERSION;
+    buildFilters();
+    render();
+</script>
+</body>
+</html>
