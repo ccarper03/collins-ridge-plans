@@ -144,6 +144,19 @@
     .ctable tr.diff td { background: #fffbeb; }
     .ctable a { color: var(--primary-light); font-weight: 700; }
 
+
+    /* Appointment prompt (compare sheet) */
+    .appt { position: absolute; left: 14px; right: 14px; bottom: 14px; z-index: 5; background: var(--white); border: 1.5px solid var(--primary); border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,.2); padding: 16px 18px; max-height: 70%; overflow: auto; }
+    .appt h3 { font-size: 17px; color: var(--primary); margin-right: 28px; }
+    .appt p { font-size: 13px; color: var(--muted); margin: 6px 0 12px; }
+    .appt .acts { display: flex; flex-wrap: wrap; gap: 8px; }
+    .appt .acts a, .appt .acts button { display: inline-flex; align-items: center; text-decoration: none; color: var(--primary); }
+    .appt .acts a.btn-primary { color: #fff; }
+    .appt .x { position: absolute; top: 6px; right: 8px; width: 36px; height: 36px; font-size: 24px; color: var(--muted); }
+    .appt form { margin-top: 12px; display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+    .appt input[type=email], .appt input[type=text], .appt input[type=tel] { min-height: 42px; padding: 6px 10px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 14px; width: 100%; }
+    .appt .note { grid-column: 1 / -1; font-size: 13px; font-weight: 600; margin: 0; }
+
     #printArea { display: none; }
 
     @media (max-width: 1024px) {
@@ -204,7 +217,7 @@
 <div id="printArea"></div>
 
 <script>
-    const VERSION = 'ver 3.a';
+    const VERSION = 'ver 3.b';
     // Printed at the top of the comparison sheet. Change here if someone else uses the tool.
     const SALES_REP = 'Charles Carper · 984-328-2788 · Clcarper@DRHorton.com';
 
@@ -687,9 +700,71 @@
             compareTable(plans, false) + '</div></div>';
         $('#sheet').classList.add('show');
         document.body.style.overflow = 'hidden';
+        scheduleAppt(plans);
+    }
+
+
+    // ---------- appointment prompt ----------
+    const BOOK_URL = 'https://charlescarper.com/book';
+    const HS = { portal: '247617862', form: '0b4dc486-9d8e-4e91-a9a2-37f231108f90' };
+    let apptTimer = null;
+
+    function scheduleAppt(plans) {
+        clearTimeout(apptTimer);
+        try { if (sessionStorage.getItem('crApptShown')) return; } catch (e) {}
+        if (plans.length < 2) return;
+        apptTimer = setTimeout(() => showAppt(plans), 5000);
+    }
+
+    function showAppt(plans) {
+        const inner = document.querySelector('#sheet.show .sheet-inner');
+        if (!inner || inner.querySelector('.appt')) return;
+        try { sessionStorage.setItem('crApptShown', '1'); } catch (e) {}
+        const names = plans.map(p => p.name);
+        const box = document.createElement('div');
+        box.className = 'appt';
+        box.setAttribute('role', 'region');
+        box.setAttribute('aria-label', 'Set up a time to review your options');
+        box.innerHTML =
+            '<button class="x" type="button" aria-label="Dismiss">&times;</button>' +
+            '<h3>How would you like to set up a time to review these?</h3>' +
+            '<p>I\u2019ll have the ' + names.join(' and the ') + ' ready and tell you which communities have them and what fits your numbers. No obligation.</p>' +
+            '<div class="acts">' +
+            '<a class="btn btn-primary" href="' + BOOK_URL + '" target="_blank" rel="noopener">Pick a time online</a>' +
+            '<a class="btn btn-ghost" href="sms:+19843282788">Text me</a>' +
+            '<a class="btn btn-ghost" href="tel:+19843282788">Call me</a>' +
+            '<button class="btn btn-ghost" type="button" data-appt="email">Email me these plans</button></div>';
+        inner.appendChild(box);
+        box.querySelector('.x').addEventListener('click', () => box.remove());
+        box.querySelector('[data-appt=email]').addEventListener('click', e => {
+            e.target.disabled = true;
+            const f = document.createElement('form');
+            f.noValidate = true;
+            f.innerHTML = '<input type="email" name="email" placeholder="Email" autocomplete="email" aria-label="Email" required>' +
+                '<input type="text" name="first" placeholder="First name (optional)" autocomplete="given-name" aria-label="First name">' +
+                '<input type="tel" name="phone" placeholder="Phone (optional)" autocomplete="tel" aria-label="Phone">' +
+                '<button class="btn btn-primary" type="submit">Send</button><p class="note" role="status" hidden></p>';
+            box.appendChild(f);
+            f.querySelector('input').focus();
+            f.addEventListener('submit', ev => {
+                ev.preventDefault();
+                const note = f.querySelector('.note');
+                const email = f.email.value.trim();
+                if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { note.hidden = false; note.textContent = 'Please enter a valid email address.'; return; }
+                const fields = [{ name: 'email', value: email }, { name: 'message', value: 'Collins Ridge plan compare tool | Compared: ' + names.join(' vs ') + (f.phone.value.trim() ? ' | Phone given' : '') }];
+                if (f.first.value.trim()) fields.push({ name: 'firstname', value: f.first.value.trim() });
+                if (f.phone.value.trim()) fields.push({ name: 'phone', value: f.phone.value.trim() });
+                fetch('https://api.hsforms.com/submissions/v3/integration/submit/' + HS.portal + '/' + HS.form, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ fields, context: { pageUri: location.href, pageName: document.title } })
+                }).then(r => { note.hidden = false; note.textContent = r.ok ? 'Got it. Thank you. I\u2019ll send them soon.' : 'That did not go through. Please text or call me.'; })
+                  .catch(() => { note.hidden = false; note.textContent = 'That did not go through. Please text or call me.'; });
+            });
+        });
     }
 
     function closeSheet() {
+        clearTimeout(apptTimer);
         $('#sheet').classList.remove('show');
         $('#sheet').innerHTML = '';
         document.body.style.overflow = '';
