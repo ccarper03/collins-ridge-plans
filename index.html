@@ -196,6 +196,10 @@
     .cta-pill { position: fixed; left: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 45; min-height: 48px; padding: 10px 20px; border-radius: 999px; background: var(--amber); color: var(--navy); font-size: 15.5px; font-weight: 700; box-shadow: 0 10px 24px rgba(4,16,32,.28); }
     .cta-pill:hover { background: var(--amber-hover); }
     .cta-pill[hidden] { display: none; }
+    /* LiveChat bubble: ride above the compare bar; step aside while a pop-up covers the screen */
+    body.has-cbar:not(.lc-open) #chat-widget-container { bottom: calc(var(--cbar-h, 84px) + 4px) !important; }
+    body.cta-open:not(.lc-open) #chat-widget-container { visibility: hidden !important; }
+    @media (max-width: 760px) { body.sheet-open:not(.lc-open) #chat-widget-container { visibility: hidden !important; } }
     .cta-later { display: block; margin: 6px auto 0; padding: 8px 12px; font-size: 14px; font-weight: 600; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
     @media (max-width: 560px) { .cta-pop { top: auto; bottom: 12px; transform: translateX(-50%); } }
     @media (prefers-reduced-motion: no-preference) {
@@ -222,7 +226,7 @@
     @media print {
         @page { size: letter; margin: 0.45in; }
         html, body { background: #fff !important; }
-        .app, .cbar, .sheet, .skip, .disclose-bar, .site-header, .site-footer, .cta-back, .cta-pop, .cta-pill { display: none !important; }
+        .app, .cbar, .sheet, .skip, .disclose-bar, .site-header, .site-footer, .cta-back, .cta-pop, .cta-pill, #chat-widget-container { display: none !important; }
         body, body.has-cbar { padding-bottom: 0; }
         #printArea { display: block !important; }
         .ppage { break-after: page; page-break-after: always; }
@@ -329,7 +333,7 @@
 <div id="printArea"></div>
 
 <script>
-    const VERSION = 'ver 4.2';
+    const VERSION = 'ver 4.3';
     // Printed on every page of the printout and shown in the call-to-action pop-up.
     const REP = { name: 'Charles Carper', role: 'New home sales with D.R. Horton', phone: '984-328-2788', tel: '+19843282788',
                   email: 'Clcarper@DRHorton.com', site: 'charlescarper.com' };
@@ -826,6 +830,7 @@
             compareTable(plans, false) + '</div></div>';
         $('#sheet').classList.add('show');
         document.body.style.overflow = 'hidden';
+        document.body.classList.add('sheet-open');
         track('fp_compare', { plans: plans.length });
         scheduleAppt(plans);
     }
@@ -907,6 +912,7 @@
         $('#sheet').classList.remove('show');
         $('#sheet').innerHTML = '';
         document.body.style.overflow = '';
+        document.body.classList.remove('sheet-open');
         if (ctaPending) { ctaPending = false; armCta(); }
     }
 
@@ -1083,6 +1089,13 @@
         if ($('#ctaPop')) closeCta(); else closeSheet();
     });
 
+    window.addEventListener('DOMContentLoaded', () => {
+        const lc = window.LiveChatWidget;
+        if (!lc) return;
+        const setOpen = v => document.body.classList.toggle('lc-open', v === 'maximized');
+        lc.on('ready', d => setOpen(d && d.state && d.state.visibility));
+        lc.on('visibility_changed', d => setOpen(d && d.visibility));
+    });
     $('#version').textContent = VERSION;
     $('#asof').textContent = 'Starting prices as of ' + PRICES_AS_OF + '. They change often, so check drhorton.com or ask me what\u2019s current.';
     document.querySelectorAll('.asof-date').forEach(el => { el.textContent = PRICES_AS_OF; });
