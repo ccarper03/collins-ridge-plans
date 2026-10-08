@@ -197,9 +197,9 @@
     .cta-pill:hover { background: var(--amber-hover); }
     .cta-pill[hidden] { display: none; }
     /* LiveChat bubble: ride above the compare bar; step aside while a pop-up covers the screen */
-    body.has-cbar:not(.lc-open) #chat-widget-container { bottom: calc(var(--cbar-h, 84px) + 4px) !important; }
-    body.cta-open:not(.lc-open) #chat-widget-container { visibility: hidden !important; }
-    @media (max-width: 760px) { body.sheet-open:not(.lc-open) #chat-widget-container { visibility: hidden !important; } }
+    body.has-cbar:not(.lc-open) #hubspot-messages-iframe-container { bottom: calc(var(--cbar-h, 84px) + 4px) !important; }
+    body.cta-open:not(.lc-open) #hubspot-messages-iframe-container { visibility: hidden !important; }
+    @media (max-width: 760px) { body.sheet-open:not(.lc-open) #hubspot-messages-iframe-container { visibility: hidden !important; } }
     .cta-later { display: block; margin: 6px auto 0; padding: 8px 12px; font-size: 14px; font-weight: 600; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
     @media (max-width: 560px) { .cta-pop { top: auto; bottom: 12px; transform: translateX(-50%); } }
     @media (prefers-reduced-motion: no-preference) {
@@ -226,7 +226,7 @@
     @media print {
         @page { size: letter; margin: 0.45in; }
         html, body { background: #fff !important; }
-        .app, .cbar, .sheet, .skip, .disclose-bar, .site-header, .site-footer, .cta-back, .cta-pop, .cta-pill, #chat-widget-container { display: none !important; }
+        .app, .cbar, .sheet, .skip, .disclose-bar, .site-header, .site-footer, .cta-back, .cta-pop, .cta-pill, #hubspot-messages-iframe-container { display: none !important; }
         body, body.has-cbar { padding-bottom: 0; }
         #printArea { display: block !important; }
         .ppage { break-after: page; page-break-after: always; }
@@ -334,7 +334,7 @@
 <div id="printArea"></div>
 
 <script>
-    const VERSION = 'ver 4.3';
+    const VERSION = 'ver 4.4';
     // Printed on every page of the printout and shown in the call-to-action pop-up.
     const REP = { name: 'Charles Carper', role: 'New home sales with D.R. Horton', phone: '984-328-2788', tel: '+19843282788',
                   email: 'Clcarper@DRHorton.com', site: 'charlescarper.com' };
@@ -1090,29 +1090,15 @@
         if ($('#ctaPop')) closeCta(); else closeSheet();
     });
 
-    window.addEventListener('DOMContentLoaded', () => {
-        const lc = window.LiveChatWidget;
-        if (!lc) return;
-        const setOpen = v => document.body.classList.toggle('lc-open', v === 'maximized');
-        lc.on('ready', d => setOpen(d && d.state && d.state.visibility));
-        lc.on('visibility_changed', d => setOpen(d && d.visibility));
-    });
     $('#version').textContent = VERSION;
     $('#asof').textContent = 'Starting prices as of ' + PRICES_AS_OF + '. They change often, so check drhorton.com or ask me what\u2019s current.';
     document.querySelectorAll('.asof-date').forEach(el => { el.textContent = PRICES_AS_OF; });
     buildFilters();
     render();
 </script>
-<script src="/site.js?v=202610081457" defer></script>
-<!-- Start of LiveChat (www.livechat.com) code -->
-<script>
-    window.__lc = window.__lc || {};
-    window.__lc.license = 19978774;
-    window.__lc.integration_name = "manual_onboarding";
-    window.__lc.product_name = "livechat";
-    ;(function(n,t,c){function i(n){return e._h?e._h.apply(null,n):e._q.push(n)}var e={_q:[],_h:null,_v:"2.0",on:function(){i(["on",c.call(arguments)])},once:function(){i(["once",c.call(arguments)])},off:function(){i(["off",c.call(arguments)])},get:function(){if(!e._h)throw new Error("[LiveChatWidget] You can't use getters before load.");return i(["get",c.call(arguments)])},call:function(){i(["call",c.call(arguments)])},init:function(){var n=t.createElement("script");n.async=!0,n.type="text/javascript",n.src="https://cdn.livechatinc.com/tracking.js",t.head.appendChild(n)}};!n.__lc.asyncInit&&e.init(),n.LiveChatWidget=n.LiveChatWidget||e}(window,document,[].slice))
-</script>
-<noscript><a href="https://www.livechat.com/chat-with/19978774/" rel="nofollow">Chat with us</a>, powered by <a href="https://www.livechat.com/?welcome" rel="noopener nofollow" target="_blank">LiveChat</a></noscript>
-<!-- End of LiveChat code -->
+<script src="/site.js?v=202610081711" defer></script>
+<!-- Start of HubSpot Embed Code (chat) -->
+<script type="text/javascript" id="hs-script-loader" async defer src="https://js-na2.hs-scripts.com/247617862.js"></script>
+<!-- End of HubSpot Embed Code -->
 </body>
 </html>
