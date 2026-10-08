@@ -41,7 +41,7 @@
     html { -webkit-text-size-adjust: 100%; }
     body { font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.45; -webkit-tap-highlight-color: transparent; }
     button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
-    body.has-cbar { padding-bottom: 84px; }
+    body.has-cbar { padding-bottom: var(--cbar-h, 84px); }
     body.cta-open { overflow: hidden; }
     .app { max-width: 1400px; margin: 0 auto; padding: 28px var(--gutter) 8px; font-size: 15px; }
 
@@ -193,6 +193,9 @@
     .cta-pop .cta-acts .btn-amber:hover { background: var(--amber-hover); }
     .cta-pop .cta-who { font-size: 13px; color: var(--muted); margin: 14px 0 0; }
     .cta-x { position: absolute; top: 8px; right: 10px; width: 40px; height: 40px; font-size: 28px; line-height: 1; color: var(--muted); }
+    .cta-pill { position: fixed; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 45; min-height: 48px; padding: 10px 20px; border-radius: 999px; background: var(--amber); color: var(--navy); font-size: 15.5px; font-weight: 700; box-shadow: 0 10px 24px rgba(4,16,32,.28); }
+    .cta-pill:hover { background: var(--amber-hover); }
+    .cta-pill[hidden] { display: none; }
     .cta-later { display: block; margin: 6px auto 0; padding: 8px 12px; font-size: 14px; font-weight: 600; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
     @media (max-width: 560px) { .cta-pop { top: auto; bottom: 12px; transform: translateX(-50%); } }
     @media (prefers-reduced-motion: no-preference) {
@@ -219,7 +222,7 @@
     @media print {
         @page { size: letter; margin: 0.45in; }
         html, body { background: #fff !important; }
-        .app, .cbar, .sheet, .skip, .disclose-bar, .site-header, .site-footer, .cta-back, .cta-pop { display: none !important; }
+        .app, .cbar, .sheet, .skip, .disclose-bar, .site-header, .site-footer, .cta-back, .cta-pop, .cta-pill { display: none !important; }
         body, body.has-cbar { padding-bottom: 0; }
         #printArea { display: block !important; }
         .ppage { break-after: page; page-break-after: always; }
@@ -320,12 +323,13 @@
   </div>
 </footer>
 <div id="pageEnd" aria-hidden="true"></div>
+<button class="cta-pill" id="ctaPill" type="button" data-act="cta" hidden>Set up a time</button>
 <div class="cbar" id="cbar"></div>
 <div class="sheet" id="sheet"></div>
 <div id="printArea"></div>
 
 <script>
-    const VERSION = 'ver 4.0';
+    const VERSION = 'ver 4.1';
     // Printed on every page of the printout and shown in the call-to-action pop-up.
     const REP = { name: 'Charles Carper', role: 'New home sales with D.R. Horton', phone: '984-328-2788', tel: '+19843282788',
                   email: 'Clcarper@DRHorton.com', site: 'charlescarper.com' };
@@ -712,13 +716,16 @@
         const bar = $('#cbar'), n = state.selected.length;
         bar.classList.toggle('show', n > 0);
         document.body.classList.toggle('has-cbar', n > 0);
-        if (!n) { bar.innerHTML = ''; return; }
+        if (!n) { bar.innerHTML = ''; updatePill(); return; }
         bar.innerHTML = '<div class="cbar-inner">' +
             state.selected.map(name => '<span class="slot">' + name + '<button data-remove="' + name + '" aria-label="Remove ' + name + '">✕</button></span>').join('') +
             (n === 1 ? '<span class="slot empty-slot">+ tap one more to compare</span>' : '') +
             '<span class="cbar-msg">' + (state.msg || '') + '</span><span class="spacer"></span>' +
+            '<button class="btn btn-amber" data-act="cta">Set up a time</button>' +
             '<button class="btn btn-ghost" data-act="print">Print</button>' +
             '<button class="btn btn-primary" data-act="compare">' + (n === 2 ? 'Compare' : 'Details') + '</button></div>';
+        document.body.style.setProperty('--cbar-h', bar.offsetHeight + 'px');
+        updatePill();
     }
 
     function render() {
@@ -813,6 +820,7 @@
         $('#sheet').innerHTML = '<div class="sheet-inner" role="dialog" aria-modal="true">' +
             '<div class="sheet-head"><h2>' + (plans.length === 2 ? plans[0].name + ' vs. ' + plans[1].name : plans[0].name) + '</h2>' +
             '<input id="preparedFor" placeholder="Name for the printout (optional)" aria-label="Name for the printout (optional)" value="' + esc(state.preparedFor) + '">' +
+            '<button class="btn btn-amber" data-act="appt">Set up a time</button>' +
             '<button class="btn btn-ghost" data-act="print">Print</button><button class="btn btn-primary" data-act="close">Done</button></div>' +
             '<div class="sheet-body">' + (plans.length === 2 ? '<p class="legend-diff"><span>Highlighted</span> rows are where the two plans differ.</p>' : '') +
             compareTable(plans, false) + '</div></div>';
@@ -833,6 +841,14 @@
         try { if (sessionStorage.getItem('crApptShown')) return; } catch (e) {}
         if (plans.length < 2) return;
         apptTimer = setTimeout(() => showAppt(plans), 5000);
+    }
+
+    // "Set up a time" in the compare sheet: bring the prompt back any time, even after it was closed.
+    function openAppt() {
+        clearTimeout(apptTimer);
+        showAppt(state.selected.map(planByName));
+        const box = document.querySelector('#sheet .appt');
+        if (box) { box.scrollIntoView({ block: 'nearest' }); const first = box.querySelector('.acts a'); if (first) first.focus(); }
     }
 
     function showAppt(plans) {
@@ -934,9 +950,15 @@
         ctaTimer = setTimeout(() => { ctaTimer = null; showCta(); }, CTA_DELAY);
     }
 
-    function showCta() {
-        if (ctaDone() || $('#ctaPop')) return;
-        if ($('#sheet').classList.contains('show')) { ctaPending = true; return; }
+    // force = the visitor asked for it ("Set up a time"), so skip the once-per-visit rule.
+    function showCta(force) {
+        if ($('#ctaPop')) return;
+        if (!force) {
+            if (ctaDone()) return;
+            if ($('#sheet').classList.contains('show')) { ctaPending = true; return; }
+        }
+        clearTimeout(ctaTimer);
+        ctaTimer = null;
         markSeen('crCtaShown');
         const names = state.selected.slice();
         ctaReturn = document.activeElement;
@@ -970,7 +992,15 @@
         pop.querySelectorAll('[data-go]').forEach(a => a.addEventListener('click', () => track('fp_cta_click', { method: a.dataset.go })));
         pop.addEventListener('keydown', trapFocus);
         pop.querySelector('h2').focus();
-        track('fp_cta_shown');
+        updatePill();
+        track('fp_cta_shown', { manual: !!force });
+    }
+
+    // After the pop-up has shown once, a "Set up a time" button stays in the corner
+    // (the compare bar has its own when plans are picked).
+    function updatePill() {
+        const pill = $('#ctaPill');
+        if (pill) pill.hidden = !(ctaDone() && !state.selected.length && !$('#ctaPop'));
     }
 
     function closeCta() {
@@ -979,6 +1009,7 @@
         pop.remove();
         if (back) back.remove();
         document.body.classList.remove('cta-open');
+        updatePill();
         if (ctaReturn && ctaReturn.focus && document.contains(ctaReturn)) ctaReturn.focus();
     }
 
@@ -1026,6 +1057,8 @@
         if (d.sort) { state.sort = d.sort; return render(); }
         if (d.act === 'compare') return openSheet();
         if (d.act === 'print') return printSheet();
+        if (d.act === 'cta') return showCta(true);
+        if (d.act === 'appt') return openAppt();
         if (d.act === 'close') return closeSheet();
         if (d.multi) {
             const k = d.multi, v = Number(d.val);
@@ -1044,6 +1077,7 @@
         if (e.target.id === 'preparedFor') { state.preparedFor = e.target.value; return; }
         if (e.target.type === 'range') onRange(e);
     });
+    window.addEventListener('resize', () => { if (state.selected.length) document.body.style.setProperty('--cbar-h', $('#cbar').offsetHeight + 'px'); });
     document.addEventListener('keydown', e => {
         if (e.key !== 'Escape') return;
         if ($('#ctaPop')) closeCta(); else closeSheet();
