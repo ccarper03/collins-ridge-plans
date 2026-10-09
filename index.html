@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,600..800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@500&display=swap">
-<link rel="stylesheet" href="/site.css?v=202610081310">
+<link rel="stylesheet" href="/site.css?v=202610082200">
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-4Y130WZZEZ"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-4Y130WZZEZ');</script>
 <style>
@@ -54,7 +54,7 @@
     .layout { display: grid; grid-template-columns: 320px 1fr; gap: 20px; align-items: start; }
 
     /* Filters */
-    .filters { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 16px; position: sticky; top: 12px; max-height: calc(100vh - 24px); overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .filters { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 16px; position: sticky; top: 92px; max-height: calc(100vh - 104px); overflow-y: auto; -webkit-overflow-scrolling: touch; }
     .filters-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
     .filters-head h2 { font-family: var(--sans); font-stretch: normal; font-weight: 700; line-height: 1.3; margin: 0; font-size: 13px; text-transform: uppercase; letter-spacing: .5px; color: var(--primary); }
     .link-btn { font-size: 13px; font-weight: 700; color: var(--primary-light); padding: 6px 4px; }
@@ -211,6 +211,25 @@
 
     #printArea { display: none; }
 
+
+    /* Phones: the filters run long, so offer a jump to the results while they're on screen. */
+    .jump-res { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(16px + var(--cbar-h, 0px)); z-index: 55; background: var(--navy, #0F2B4C); color: #fff; border: 0; border-radius: 999px; padding: 12px 22px; font: 600 15.5px var(--sans, system-ui); box-shadow: 0 10px 24px rgba(4,16,32,.3); cursor: pointer; }
+    body:not(.has-cbar) .jump-res { bottom: 16px; }
+    @media (min-width: 761px) { .jump-res { display: none !important; } }
+    .pick-hint { font-size: 15px; color: var(--muted, #4A5F77); margin: 14px 2px 0; }
+    .after-plans { margin-top: 40px; padding-top: 28px; border-top: 1px solid var(--border, #CBD7E3); }
+    .after-plans h2 { font-family: var(--display, sans-serif); font-stretch: 75%; font-size: clamp(28px, 3.4vw, 40px); margin: 0 0 16px; }
+    .ap-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+    .ap-card { display: block; padding: 18px; border: 1.5px solid var(--navy, #0F2B4C); border-radius: 8px; background: #fff; text-decoration: none; color: var(--navy, #0F2B4C); }
+    .ap-card span { display: block; font-size: 14px; color: var(--muted, #4A5F77); }
+    .ap-card b { display: block; font-size: 18px; margin-top: 4px; }
+    .ap-card:hover { background: var(--navy, #0F2B4C); color: #fff; }
+    .ap-card:hover span { color: #CBD7E3; }
+    .ap-primary { background: #F2A93B; border-color: #F2A93B; }
+    .ap-primary span { color: #0F2B4C; }
+    .ap-primary:hover { background: #FFBC55; color: #0F2B4C; }
+    @media (max-width: 760px) { .ap-grid { grid-template-columns: 1fr; } }
+    @media print { .jump-res, .after-plans, .pick-hint { display: none !important; } }
     @media (max-width: 1024px) {
         .layout { grid-template-columns: 290px 1fr; }
         .card-name { font-size: 22px; }
@@ -251,19 +270,18 @@
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
-<div class="disclose-bar"><div class="wrap">Charles Carper · New home sales with D.R. Horton · My personal site, not an official D.R. Horton website</div></div>
+<aside class="disclose-bar" aria-label="Disclosure"><div class="wrap">Charles Carper · New home sales with D.R. Horton · My personal site, not an official D.R. Horton website</div></aside>
 <header class="site-header">
   <div class="wrap header-row">
     <a class="wordmark" href="/" aria-label="Charles Carper, home">
       <span class="wm-name">Charles Carper</span>
-      <span class="wm-tag">New Construction Chuck</span>
     </a>
     <nav class="nav" aria-label="Main">
       <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-list">Menu</button>
       <ul class="nav-list" id="nav-list">
-        <li><a href="/collins-ridge">Collins Ridge</a></li><li><a href="/collins-ridge-plans/" aria-current="page">Find a floor plan</a></li><li><a href="/guides">Guides</a></li><li><a href="/realtors">For realtors</a></li><li><a href="/about">About</a></li>
+        <li><a href="/collins-ridge">Collins Ridge</a></li><li><a href="/collins-ridge-plans/" aria-current="page">Find a floor plan</a></li><li><a href="/guides/">Guides</a></li><li><a href="/realtors">For realtors</a></li><li><a href="/about">About</a></li>
       </ul>
-      <a class="btn btn-amber btn-sm" href="/book">Book a visit</a>
+      <a class="btn btn-amber btn-sm nav-book" href="/book">Book<span class="nb-more">&nbsp;a visit</span></a>
     </nav>
   </div>
 </header>
@@ -284,9 +302,19 @@
             <p class="asof" id="asof"></p>
             <div class="cards" id="cards"></div>
             <section class="ruled" id="ruled"></section>
+            <p class="pick-hint">Tap a plan to pick it. Pick one or two and a <b>Set up a time</b> button appears, so you can come walk them with me.</p>
         </section>
     </div>
+    <section class="after-plans" aria-labelledby="ap-h">
+        <h2 id="ap-h">Found one you like?</h2>
+        <div class="ap-grid">
+            <a class="ap-card ap-primary" href="/book"><span>Ready to see it</span><b>Book a visit at Collins Ridge</b></a>
+            <a class="ap-card" href="/match"><span>Not sure Hillsborough fits?</span><b>Answer seven questions</b></a>
+            <a class="ap-card" href="/guides/how-to-choose-a-floor-plan"><span>Still deciding</span><b>How to choose a floor plan you won't outgrow</b></a>
+        </div>
+    </section>
 </div>
+<button type="button" class="jump-res" id="jumpRes" hidden>See plans ↓</button>
 </main>
 <footer class="site-footer blueprint">
   <div class="wrap">
@@ -294,7 +322,6 @@
       <div>
         <a class="wordmark" href="/" aria-label="Charles Carper, home">
           <span class="wm-name">Charles Carper</span>
-          <span class="wm-tag">New Construction Chuck</span>
         </a>
         <p class="small" style="margin-top:16px;max-width:34ch">New home sales at Collins Ridge in Hillsborough, NC, with D.R. Horton.</p>
       </div>
@@ -312,7 +339,7 @@
         <ul>
           <li><a href="/collins-ridge">Collins Ridge</a></li>
           <li><a href="/collins-ridge-plans/">Find a floor plan</a></li>
-          <li><a href="/guides">Guides</a></li>
+          <li><a href="/guides/">Guides</a></li>
           <li><a href="/faq">FAQ</a></li>
           <li><a href="/realtors">For realtors</a></li>
           <li><a href="/about">About Charles</a></li>
@@ -605,7 +632,7 @@
     }
     function rangeHTML(key, title, min, max, step) {
         const r = end => '<div class="range-row"><div class="rl"><span>' + end + '</span><span id="' + key + end + 'Val"></span></div>' +
-            '<input type="range" id="' + key + end + '" min="' + min + '" max="' + max + '" step="' + step + '"></div>';
+            '<input type="range" id="' + key + end + '" aria-label="' + title + ', ' + (end === 'Min' ? 'minimum' : 'maximum') + '" min="' + min + '" max="' + max + '" step="' + step + '"></div>';
         return '<div class="fgroup"><h3>' + title + '</h3>' + r('Min') + r('Max') + '</div>';
     }
 
@@ -744,6 +771,7 @@
         const ruled = evals.filter(e => e.fails.length).sort((a, b) => a.fails.length - b.fails.length || order(a, b));
         renderWish(cs);
         $('#resCount').textContent = matches.length === 1 ? '1 plan fits' : matches.length + ' plans fit';
+        const jb = $('#jumpRes'); if (jb) jb.textContent = 'See ' + (matches.length === 1 ? '1 plan' : matches.length + ' plans') + ' ↓';
         renderCards(matches);
         renderRuled(ruled, matches.length);
         renderBar();
@@ -1094,9 +1122,19 @@
     $('#asof').textContent = 'Starting prices as of ' + PRICES_AS_OF + '. They change often, so check drhorton.com or ask me what\u2019s current.';
     document.querySelectorAll('.asof-date').forEach(el => { el.textContent = PRICES_AS_OF; });
     buildFilters();
+    // Phones: show "See N plans" while the filter panel fills the screen.
+    (function () {
+        const jb = document.getElementById('jumpRes'), filters = document.getElementById('filters'), head = document.querySelector('.res-head');
+        if (!jb || !filters || !head || !('IntersectionObserver' in window)) return;
+        let fVis = false, hVis = false;
+        const upd = () => { jb.hidden = !(fVis && !hVis); };
+        new IntersectionObserver(e => { fVis = e[0].isIntersecting; upd(); }, { rootMargin: '-40% 0px -20% 0px' }).observe(filters);
+        new IntersectionObserver(e => { hVis = e[0].isIntersecting; upd(); }).observe(head);
+        jb.addEventListener('click', () => { head.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); track('fp_jump_results', {}); });
+    })();
     render();
 </script>
-<script src="/site.js?v=202610081711" defer></script>
+<script src="/site.js?v=202610082200" defer></script>
 <!-- Start of HubSpot Embed Code (chat) -->
 <script type="text/javascript" id="hs-script-loader" async defer src="https://js-na2.hs-scripts.com/247617862.js"></script>
 <!-- End of HubSpot Embed Code -->
