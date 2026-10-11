@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,600..800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@500&display=swap">
-<link rel="stylesheet" href="/site.css?v=202610082200">
+<link rel="stylesheet" href="/site.css?v=202610112000">
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-4Y130WZZEZ"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-4Y130WZZEZ');</script>
 <style>
@@ -296,9 +296,8 @@
             <div class="wish" id="wish"></div>
             <div class="res-head">
                 <h2 id="resCount"></h2>
-                <div class="sort"><span>Sort</span><div class="seg" id="sortSeg"><button data-sort="sqft">Sq Ft</button><button data-sort="price">Price</button></div></div>
-            </div>
-            <p class="asof" id="asof"></p>
+                            </div>
+            <p class="asof" id="asof">For current pricing, see <a href="https://www.drhorton.com/north-carolina/raleigh-durham/hillsborough/collins-ridge" target="_blank" rel="noopener">Collins Ridge on drhorton.com</a>. <a class="btn btn-amber btn-sm" href="/book">Book a visit</a></p>
             <div class="cards" id="cards"></div>
             <section class="ruled" id="ruled"></section>
             <p class="pick-hint">Tap a plan to pick it. Pick one or two and a <b>Set up a time</b> button appears, so you can come walk them with me.</p>
@@ -308,7 +307,7 @@
         <h2 id="ap-h">Found one you like?</h2>
         <div class="ap-grid">
             <a class="ap-card ap-primary" href="/book"><span>Ready to see it</span><b>Book a visit at Collins Ridge</b></a>
-            <a class="ap-card" href="/match"><span>Not sure Hillsborough fits?</span><b>Answer seven questions</b></a>
+            <a class="ap-card" href="sms:+19843282788"><span>Not sure Hillsborough fits?</span><b>Text me what you need</b></a>
             <a class="ap-card" href="/guides/how-to-choose-a-floor-plan"><span>Still deciding</span><b>How to choose a floor plan you won't outgrow</b></a>
         </div>
     </section>
@@ -347,7 +346,7 @@
     </div>
     <div class="footer-legal">
       <p>Charles Carper is a new home sales consultant with D.R. Horton. This is my personal website. I built it to keep my guides, notes and tools in one place for the people I work with. It isn't an official D.R. Horton website. I represent D.R. Horton as the seller, and you're always welcome to bring your own agent.</p>
-      <p>Plan details and images come from D.R. Horton's Collins Ridge plan sheets. Starting prices are as of <span class="asof-date"></span>. Square footage and room sizes are approximate.</p>
+      <p>Plan details come from D.R. Horton's Collins Ridge plan sheets. For included features and current details, see <a href="https://www.drhorton.com/north-carolina/raleigh-durham/hillsborough/collins-ridge" target="_blank" rel="noopener">Collins Ridge on drhorton.com</a>.</p>
       <p>Prices, plans, incentives and availability change often, so check <a href="https://www.drhorton.com" target="_blank" rel="noopener">drhorton.com</a> or ask me before you decide anything. Nothing here is an offer or a guarantee. Equal Housing Opportunity.</p>
       <p><a href="/privacy">Privacy</a> &nbsp;&nbsp; <span class="fp-ver">Floor plan finder <span id="version"></span></span></p>
     </div>
@@ -360,24 +359,16 @@
 <div id="printArea"></div>
 
 <script>
-    const VERSION = 'ver 4.4';
+    const VERSION = 'ver 4.5';
     // Printed on every page of the printout and shown in the call-to-action pop-up.
     const REP = { name: 'Charles Carper', role: 'New home sales with D.R. Horton', phone: '984-328-2788', tel: '+19843282788',
                   email: 'Clcarper@DRHorton.com', site: 'charlescarper.com' };
-    // Update this date every time the starting prices below change. Prices should match drhorton.com.
-    const PRICES_AS_OF = 'October 6, 2026';
     const PRINT_FINE = REP.name + ' is a new home sales consultant with D.R. Horton and represents the seller. Printed from ' + REP.site +
-        ', his personal site, not an official D.R. Horton website. Starting prices as of ' + PRICES_AS_OF + '. Prices, plans, features and ' +
-        'availability change often, so check drhorton.com or ask Charles before you decide. Square footage and room sizes are approximate. ' +
+        ', his personal site, not an official D.R. Horton website. Prices, plans, features and ' +
+        'availability change often, so check drhorton.com or ask Charles before you decide. ' +
         'Plan details from D.R. Horton plan sheets. Equal Housing Opportunity.';
     // Page analytics only. Never send what the visitor tapped (budget, rooms) anywhere.
     const track = (name, params) => { try { if (window.gtag) window.gtag('event', name, params || {}); } catch (e) {} };
-
-    // Lowest current price per model
-    const modelPrices = {
-        Robie: 418000, Alec: 474000, Calhoun: 490000, Cali: 445000, Galen: 450000, Hanover: 479000,
-        Hayden: 463000, Jackson: 493000, Landon: 432000, Linville: 390000, Savannah: 380000, Sierra: 418000
-    };
 
     const COVERED_STAR = 'Covered* (community &amp; homesite specific)';
     const PATIO_STAR = 'Patio* (size varies by homesite)';
@@ -385,82 +376,65 @@
     // Source: official D.R. Horton plan sheets for Collins Ridge + Chuck's confirmations.
     // features: flex, loft, upstairs, dining (separate dining room), pantry, butler, covered, islandSink, gardenTub, tray, vaulted
     const floorPlans = [
-        { name: 'Cali', type: 'sf', rearLoad: false, stories: 1, bedrooms: 4, bathrooms: 2, sqft: 1764,
+        { name: 'Cali', type: 'sf', rearLoad: false, stories: 1, bedrooms: 4, bathrooms: 2,
           primaryDown: true, bedroomDown: true, laundry: '1st',
-          features: ['pantry', 'vaulted', 'covered', 'islandSink'],
-          primarySize: '12\' x 15\'', livingSize: '15\'1" x 16\'4"', upstairs: null,
-          dining: 'Dining room · 10\'11" x 10\'5"', patio: 'Covered · 11\' x 8\'',
-          garageSize: '20\'1" x 20\'', ceiling: 'Vaulted ceiling in primary', pdfUrl: 'https://www.drhorton.com/-/media/drhorton/productcatalog/495-raleigh/49730-collins-ridge/497300000-collins-ridge-50/1765/cali_-_4_bd_-_tradition_series_nofp_collins_ridge.jpg?rev=3395e77ddf264f0caa7fc5fa89615a26&hash=5F7AD503560DBEA82806357F5FB06410' },
-        { name: 'Savannah', type: 'th', rearLoad: false, stories: 2, bedrooms: 4, bathrooms: 2.5, sqft: 2240,
+          features: ['pantry', 'vaulted', 'covered', 'islandSink'], upstairs: null,
+          dining: 'Dining room', patio: 'Covered', ceiling: 'Vaulted ceiling in primary', pdfUrl: 'https://www.drhorton.com/-/media/drhorton/productcatalog/495-raleigh/49730-collins-ridge/497300000-collins-ridge-50/1765/cali_-_4_bd_-_tradition_series_nofp_collins_ridge.jpg?rev=3395e77ddf264f0caa7fc5fa89615a26&hash=5F7AD503560DBEA82806357F5FB06410' },
+        { name: 'Savannah', type: 'th', rearLoad: false, stories: 2, bedrooms: 4, bathrooms: 2.5,
           primaryDown: true, bedroomDown: true, laundry: '1st',
-          features: ['pantry', 'loft', 'islandSink'],
-          primarySize: '12\'4" x 15\'', livingSize: '12\'4" x 16\'11"', upstairs: { type: 'Loft', size: '25\' x 15\'8"' },
-          dining: 'Dining room · 15\'4" x 10\'10"', patio: PATIO_STAR,
-          garageSize: '18\'6" x 20\'', note: 'Side windows on end units only',
+          features: ['pantry', 'loft', 'islandSink'], upstairs: { type: 'Loft' },
+          dining: 'Dining room', patio: PATIO_STAR, note: 'Side windows on end units only',
           pdfUrl: 'https://www.drhorton.com/-/media/drhorton/productcatalog/495-raleigh/49727-collins-ridge/497280000-collins-ridge-26-th/t202/savannah_-_tradition_series_collins_ridge.jpg?rev=c8b4e38044ee46779a4caad2c526584d&hash=BFDA12966C8CF9C921F68F08607C6D8D' },
-        { name: 'Galen', type: 'sf', rearLoad: false, stories: 2, bedrooms: 3, bathrooms: 2.5, sqft: 2340,
+        { name: 'Galen', type: 'sf', rearLoad: false, stories: 2, bedrooms: 3, bathrooms: 2.5,
           primaryDown: false, bedroomDown: false, laundry: '2nd',
-          features: ['flex', 'loft', 'pantry', 'islandSink'],
-          primarySize: '20\'8" x 13\'4"', livingSize: '25\'8" x 19\'8"', upstairs: { type: 'Loft', size: '12\'4" x 11\'4"' },
-          flexSize: '12\'4" x 12\'4"', flexNote: 'optional French doors',
-          dining: 'Open to living room / kitchen', patio: PATIO_STAR, garageSize: '20\'8" x 20\'4"',
+          features: ['flex', 'loft', 'pantry', 'islandSink'], upstairs: { type: 'Loft' }, flexNote: 'optional French doors',
+          dining: 'Open to living room / kitchen', patio: PATIO_STAR,
           options: [{ short: 'Bed 4 option', badge: 'Opt: Bed 4 instead of Loft', label: 'Bedroom 4 instead of the loft', bedrooms: 4, removes: ['loft'] }],
           pdfUrl: 'https://www.drhorton.com/-/media/drhorton/productcatalog/495-raleigh/49730-collins-ridge/497300000-collins-ridge-50/2341/galen_-_3-4bd_-_tradition_series_nofp_collins_ridge.jpg?rev=7abde535a1b2427ba00c2b94a844dc55&hash=C07AAADA4B06BB3B20475C868E6BEFDC' },
-        { name: 'Robie', type: 'sf', rearLoad: false, stories: 2, bedrooms: 5, bathrooms: 3, sqft: 2368,
+        { name: 'Robie', type: 'sf', rearLoad: false, stories: 2, bedrooms: 5, bathrooms: 3,
           primaryDown: false, bedroomDown: true, laundry: '2nd',
-          features: ['flex', 'loft', 'pantry', 'islandSink'],
-          primarySize: '', livingSize: '', upstairs: { type: 'Loft', size: '' },
-          dining: 'Dining (open to living room)', patio: PATIO_STAR, garageSize: '18\'9" x 19\'4"',
+          features: ['flex', 'loft', 'pantry', 'islandSink'], upstairs: { type: 'Loft' },
+          dining: 'Dining (open to living room)', patio: PATIO_STAR,
           pdfUrl: 'https://www.drhorton.com/-/media/drhorton/productcatalog/495-raleigh/49730-collins-ridge/497290000-collins-ridge-40/2363/robie_-_5bd_-_tradition_series_nofp_collins_ridge.jpg?rev=31b160785fae4069ba46c82d81b30064&hash=AAB5D6C2FDB45AA3DE0B73E23E037B3B' },
-        { name: 'Sierra', type: 'sf', rearLoad: false, stories: 2, bedrooms: 4, bathrooms: 2.5, sqft: 2395,
+        { name: 'Sierra', type: 'sf', rearLoad: false, stories: 2, bedrooms: 4, bathrooms: 2.5,
           primaryDown: true, bedroomDown: true, laundry: '1st',
-          features: ['upstairs', 'islandSink'],
-          primarySize: '12\'10" x 14\'', livingSize: '14\'1" x 14\'3"', upstairs: { type: 'Upstairs Living', size: '27\'3" x 14\'8"' },
-          dining: 'Dining · 16\' x 7\'10"', patio: PATIO_STAR, garageSize: '18\'7" x 20\'',
+          features: ['upstairs', 'islandSink'], upstairs: { type: 'Upstairs Living' },
+          dining: 'Dining', patio: PATIO_STAR,
           pdfUrl: 'https://www.drhorton.com/-/media/drhorton/productcatalog/495-raleigh/49730-collins-ridge/497290000-collins-ridge-40/2396/sierra_-_4bd_-_tradition_series_nofp_collins_ridge.jpg?rev=cb93248c85cb4719ba9ebd8c3f208f8d&hash=D9965558919D5D0BF2EBE4C1686BBE56' },
-        { name: 'Linville', type: 'th', rearLoad: false, stories: 2, bedrooms: 4, bathrooms: 3, sqft: 2439,
+        { name: 'Linville', type: 'th', rearLoad: false, stories: 2, bedrooms: 4, bathrooms: 3,
           primaryDown: false, bedroomDown: true, laundry: '2nd',
-          features: ['loft', 'pantry', 'gardenTub', 'islandSink'],
-          primarySize: '14\'4" x 20\'2"', livingSize: '13\' x 16\'8"', upstairs: { type: 'Loft', size: '13\' x 12\'' },
-          dining: 'Dining room · 13\' x 12\'6"', patio: PATIO_STAR, garageSize: '18\'6" x 20\'',
+          features: ['loft', 'pantry', 'gardenTub', 'islandSink'], upstairs: { type: 'Loft' },
+          dining: 'Dining room', patio: PATIO_STAR,
           note: 'Side windows on end units only', pdfUrl: 'https://www.drhorton.com/-/media/drhorton/productcatalog/495-raleigh/49727-collins-ridge/497280000-collins-ridge-26-th/t203/linville_-_tradition_series_collins_ridge.jpg?rev=7273d2fe51114dedad392ac41007f977&hash=09FA7A0E212851A5E0604F48A21E210A' },
-        { name: 'Hayden', type: 'sf', rearLoad: false, stories: 2, bedrooms: 5, bathrooms: 3, sqft: 2511,
+        { name: 'Hayden', type: 'sf', rearLoad: false, stories: 2, bedrooms: 5, bathrooms: 3,
           primaryDown: false, bedroomDown: true, laundry: '2nd',
-          features: ['flex', 'loft', 'pantry', 'islandSink'],
-          primarySize: '13\'1" x 20\'', livingSize: '15\'1" x 15\'5"', upstairs: { type: 'Loft', size: '11\' x 12\'' },
-          flexSize: '12\'1" x 11\'5"', flexNote: 'optional French doors',
-          dining: 'Breakfast area', patio: PATIO_STAR, garageSize: '20\'5" x 20\'',
+          features: ['flex', 'loft', 'pantry', 'islandSink'], upstairs: { type: 'Loft' }, flexNote: 'optional French doors',
+          dining: 'Breakfast area', patio: PATIO_STAR,
           pdfUrl: 'https://www.drhorton.com/-/media/drhorton/productcatalog/495-raleigh/49730-collins-ridge/497300000-collins-ridge-50/2512/hayden_-_5bd_-_tradition_series_nofp_collins_ridge.jpg?rev=55032b6e74204d1dab990810424b865b&hash=27C8EAB08A63CEF11616E764843400E5' },
-        { name: 'Alec', type: 'sf', rearLoad: true, stories: 2, bedrooms: 4, bathrooms: 3, sqft: 2518,
+        { name: 'Alec', type: 'sf', rearLoad: true, stories: 2, bedrooms: 4, bathrooms: 3,
           primaryDown: false, bedroomDown: true, laundry: '2nd',
-          features: ['loft', 'pantry', 'tray', 'covered', 'islandSink'], patioStar: true,
-          primarySize: '21\' x 14\'10"', livingSize: '15\'6" x 14\'5.5"', upstairs: { type: 'Loft', size: '15\'6" x 11\'6"' },
-          dining: 'Dining · 13\'6" x 12\'2"', patio: COVERED_STAR, garageSize: '21\' x 20\'4"',
+          features: ['loft', 'pantry', 'tray', 'covered', 'islandSink'], patioStar: true, upstairs: { type: 'Loft' },
+          dining: 'Dining', patio: COVERED_STAR,
           ceiling: 'Tray ceiling in primary', pdfUrl: 'https://www.drhorton.com/-/media/drhorton/productcatalog/495-raleigh/49730-collins-ridge/497300000-collins-ridge-50/2531/alec_rl_-_tradition_series_nofp_collins_ridge.jpg?rev=294f9cc2e37d45f587e71c29559bca90&hash=9F3389D1950B8BDD446A600CB555EDE8' },
-        { name: 'Landon', type: 'sf', rearLoad: false, stories: 2, bedrooms: 4, bathrooms: 3, sqft: 2570,
+        { name: 'Landon', type: 'sf', rearLoad: false, stories: 2, bedrooms: 4, bathrooms: 3,
           primaryDown: false, bedroomDown: true, laundry: '2nd',
-          features: ['upstairs', 'pantry', 'gardenTub', 'islandSink'],
-          primarySize: '16\'6" x 18\'9"', livingSize: '15\'3" x 14\'11"', upstairs: { type: 'Upstairs Living', size: '12\'6" x 11\'6"' },
-          dining: 'Dining · 15\'3" x 13\'', patio: PATIO_STAR, garageSize: '18\'7" x 20\'',
+          features: ['upstairs', 'pantry', 'gardenTub', 'islandSink'], upstairs: { type: 'Upstairs Living' },
+          dining: 'Dining', patio: PATIO_STAR,
           pdfUrl: 'https://www.drhorton.com/-/media/drhorton/productcatalog/495-raleigh/49730-collins-ridge/497290000-collins-ridge-40/2585/landon_-_tradition_series_nofp_collins_ridge.jpg?rev=bb0d57c0bc994777816dcccc7c038470&hash=487A56F575101EC5B9A5DAA8BE24823E' },
-        { name: 'Calhoun', type: 'sf', rearLoad: true, stories: 2, bedrooms: 4, bathrooms: 3.5, sqft: 2628,
+        { name: 'Calhoun', type: 'sf', rearLoad: true, stories: 2, bedrooms: 4, bathrooms: 3.5,
           primaryDown: true, dualPrimary: true, bedroomDown: true, laundry: '2nd',
-          features: ['dining', 'pantry', 'tray', 'gardenTub', 'covered', 'islandSink'], patioStar: true,
-          primarySize: '1st floor 12\' x 19\'11" · 2nd floor 13\' x 16\'', livingSize: '17\'4" x 16\'2"', upstairs: null,
-          dining: 'Dining room 11\'6" x 12\'3" + breakfast area', patio: COVERED_STAR, garageSize: '19\'5" x 21\'6"',
+          features: ['dining', 'pantry', 'tray', 'gardenTub', 'covered', 'islandSink'], patioStar: true, upstairs: null,
+          dining: 'Dining room + breakfast area', patio: COVERED_STAR,
           ceiling: 'Tray ceiling in 2nd-floor primary', pdfUrl: 'https://www.drhorton.com/-/media/drhorton/productcatalog/495-raleigh/49730-collins-ridge/497290000-collins-ridge-40/2628/calhoun_rl_-_tradition_series_nofp_collins_ridge.jpg?rev=a842196fca7443869bd4ffcd9aa1b014&hash=C3B0586C9EDDF08C992321C2F3298269' },
-        { name: 'Jackson', type: 'sf', rearLoad: true, stories: 2, bedrooms: 5, bathrooms: 3, sqft: 2637,
+        { name: 'Jackson', type: 'sf', rearLoad: true, stories: 2, bedrooms: 5, bathrooms: 3,
           primaryDown: false, bedroomDown: true, laundry: '2nd',
-          features: ['dining', 'pantry', 'butler', 'tray', 'covered', 'islandSink'], patioStar: true,
-          primarySize: '15\'4.5" x 19\'5.5"', livingSize: '15\'10" x 19\'9"', upstairs: null,
-          dining: 'Dining room 11\'10.5" x 15\'6" + breakfast area', patio: COVERED_STAR, garageSize: '20\' x 22\'',
+          features: ['dining', 'pantry', 'butler', 'tray', 'covered', 'islandSink'], patioStar: true, upstairs: null,
+          dining: 'Dining room + breakfast area', patio: COVERED_STAR,
           ceiling: 'Tray ceiling in primary', pdfUrl: 'https://www.drhorton.com/-/media/drhorton/productcatalog/495-raleigh/49730-collins-ridge/497300000-collins-ridge-50/2638/jackson_rl_-_tradition_series_nofp_collins_ridge.jpg?rev=efd21e7878394185999eef1d9642f2c6&hash=FE7C24B467EE7CB7039E5EF49C7C0597' },
-        { name: 'Hanover', type: 'sf', rearLoad: false, stories: 2, bedrooms: 4, bathrooms: 2.5, sqft: 2804,
+        { name: 'Hanover', type: 'sf', rearLoad: false, stories: 2, bedrooms: 4, bathrooms: 2.5,
           primaryDown: false, bedroomDown: false, laundry: '2nd',
-          features: ['flex', 'loft', 'pantry'],
-          primarySize: '19\'4" x 13\'8"', livingSize: '18\' x 20\'', upstairs: { type: 'Loft', size: '11\'8" x 18\'4"' },
-          flexSize: '12\' x 20\'', dining: 'Dining area (open to kitchen &amp; living room)', patio: PATIO_STAR, garageSize: '20\' x 20\'4"',
-          options: [{ short: 'Bed 5 option', badge: 'Opt: Bed 5 + Bath instead of Flex', label: 'Bedroom 5 (12\' x 14\') + walk-in closet + full bath instead of the flex room &amp; powder room', bedrooms: 5, bathrooms: 3, sqft: 2818, bedroomDown: true, removes: ['flex'] }],
+          features: ['flex', 'loft', 'pantry'], upstairs: { type: 'Loft' }, dining: 'Dining area (open to kitchen &amp; living room)', patio: PATIO_STAR,
+          options: [{ short: 'Bed 5 option', badge: 'Opt: Bed 5 + Bath instead of Flex', label: 'Bedroom 5 + walk-in closet + full bath instead of the flex room &amp; powder room', bedrooms: 5, bathrooms: 3, bedroomDown: true, removes: ['flex'] }],
           pdfUrl: 'https://www.drhorton.com/-/media/drhorton/productcatalog/495-raleigh/49730-collins-ridge/497300000-collins-ridge-50/2804/hanover_-_4-5bd_-_tradition_series_nofp__collins_ridge.jpg?rev=57dd88f1dbf0450ba43f502fb0d3ef55&hash=F026115819D8FEE25EDE7543EE5F1DD4' }
     ];
 
@@ -493,12 +467,12 @@
         option: '<path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/>'
     };
 
-    const DEFAULTS = { hometype: 'any', stories: 'any', primary: 'any', garage: 'any', laundry: 'any', beds: [], baths: [], tri: {}, price: [350000, 500000], sqft: [1500, 3000] };
+    const DEFAULTS = { hometype: 'any', stories: 'any', primary: 'any', garage: 'any', laundry: 'any', beds: [], baths: [], tri: {} };
     let state = freshState();
 
     function freshState() {
         const s = JSON.parse(JSON.stringify(DEFAULTS));
-        s.sort = 'sqft'; s.selected = []; s.showRuled = false; s.preparedFor = ''; s.msg = '';
+        s.selected = []; s.showRuled = false; s.preparedFor = ''; s.msg = '';
         return s;
     }
 
@@ -506,9 +480,7 @@
     const $ = sel => document.querySelector(sel);
     const has = (list, f) => list.indexOf(f) !== -1;
     const pick = (v, d) => (v === undefined || v === null) ? d : v;
-    const fmtK = v => '$' + Math.round(v / 1000) + 'k';
     const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-    const priceText = p => modelPrices[p.name] ? 'Starting in the $' + Math.round(modelPrices[p.name] / 1000) + 's' : '';
     const planByName = n => floorPlans.find(p => p.name === n);
 
     function icon(name) {
@@ -522,16 +494,15 @@
     }
 
     const specLine = p => rangeText(p, 'bedrooms', v => v) + ' Bed | ' + rangeText(p, 'bathrooms', v => v) + ' Bath | 2 Car | ' +
-        (p.stories === 1 ? '1 Story' : '2 Story') + ' | ' + rangeText(p, 'sqft', v => v.toLocaleString()) + ' Sq. Ft.';
+        (p.stories === 1 ? '1 Story' : '2 Story');
 
     // Base layout plus each builder option as its own configuration
     function configsFor(p) {
-        const base = { option: null, bedrooms: p.bedrooms, bathrooms: p.bathrooms, sqft: p.sqft, features: p.features, bedroomDown: p.bedroomDown };
+        const base = { option: null, bedrooms: p.bedrooms, bathrooms: p.bathrooms, features: p.features, bedroomDown: p.bedroomDown };
         return [base].concat((p.options || []).map(o => ({
             option: o,
             bedrooms: pick(o.bedrooms, p.bedrooms),
             bathrooms: pick(o.bathrooms, p.bathrooms),
-            sqft: pick(o.sqft, p.sqft),
             features: p.features.filter(f => !has(o.removes || [], f)),
             bedroomDown: pick(o.bedroomDown, p.bedroomDown)
         })));
@@ -549,12 +520,6 @@
         const c = [];
         if (state.hometype !== 'any') c.push({ id: 'hometype', wish: state.hometype === 'sf' ? 'Single-family' : 'Townhome',
             test: p => p.type === state.hometype, reason: p => p.type === 'th' ? 'Townhome' : 'Single-family' });
-        if (state.price[0] !== DEFAULTS.price[0] || state.price[1] !== DEFAULTS.price[1]) {
-            const lo = state.price[0], hi = state.price[1];
-            c.push({ id: 'price', wish: fmtK(lo) + '–' + fmtK(hi),
-                test: p => { const v = modelPrices[p.name] || 0; return v >= lo && v <= hi; },
-                reason: p => { const v = modelPrices[p.name] || 0; return 'Starts at ' + fmtK(v) + (v > hi ? ' (over budget)' : ' (below range)'); } });
-        }
         if (state.beds.length) c.push({ id: 'beds', wish: state.beds.join(' or ') + ' beds',
             test: (p, cfg) => has(state.beds, cfg.bedrooms), reason: (p, cfg) => cfg.bedrooms + ' beds' });
         if (state.baths.length) c.push({ id: 'baths', wish: state.baths.join(' or ') + ' baths',
@@ -574,11 +539,6 @@
             test: p => (p.rearLoad ? 'rear' : 'front') === state.garage, reason: p => p.rearLoad ? 'Rear-load garage' : 'Front-load garage' });
         if (state.laundry !== 'any') c.push({ id: 'laundry', wish: 'Laundry on ' + state.laundry + ' floor',
             test: p => p.laundry === state.laundry, reason: p => 'Laundry on ' + p.laundry + ' floor' });
-        if (state.sqft[0] !== DEFAULTS.sqft[0] || state.sqft[1] !== DEFAULTS.sqft[1]) {
-            const lo = state.sqft[0], hi = state.sqft[1];
-            c.push({ id: 'sqft', wish: lo.toLocaleString() + '–' + hi.toLocaleString() + ' sq ft',
-                test: (p, cfg) => cfg.sqft >= lo && cfg.sqft <= hi, reason: (p, cfg) => cfg.sqft.toLocaleString() + ' sq ft' });
-        }
         return c;
     }
 
@@ -604,7 +564,6 @@
 
     function clearCriterion(id) {
         if (id.indexOf('tri:') === 0) delete state.tri[id.slice(4)];
-        else if (id === 'price' || id === 'sqft') state[id] = DEFAULTS[id].slice();
         else if (id === 'beds' || id === 'baths') state[id] = [];
         else state[id] = 'any';
         render();
@@ -629,17 +588,11 @@
         return '<div class="fgroup"><h3>' + title + '</h3><div class="chips">' +
             keys.map(k => '<button class="chip" data-tri="' + k + '"><span class="mark">+</span>' + TRI[k].label + '</button>').join('') + '</div></div>';
     }
-    function rangeHTML(key, title, min, max, step) {
-        const r = end => '<div class="range-row"><div class="rl"><span>' + end + '</span><span id="' + key + end + 'Val"></span></div>' +
-            '<input type="range" id="' + key + end + '" aria-label="' + title + ', ' + (end === 'Min' ? 'minimum' : 'maximum') + '" min="' + min + '" max="' + max + '" step="' + step + '"></div>';
-        return '<div class="fgroup"><h3>' + title + '</h3>' + r('Min') + r('Max') + '</div>';
-    }
 
     function buildFilters() {
         $('#filters').innerHTML =
             '<div class="filters-head"><h2>What matters to you</h2><button class="link-btn" data-reset="1">Start over</button></div>' +
             segHTML('hometype', 'Home Type', [['any', 'Any'], ['sf', 'Single-Family'], ['th', 'Townhome']]) +
-            rangeHTML('price', 'Budget (starting price)', 350000, 500000, 5000) +
             multiHTML('beds', 'Bedrooms', [[3, '3'], [4, '4'], [5, '5']]) +
             multiHTML('baths', 'Bathrooms', [[2, '2'], [2.5, '2.5'], [3, '3'], [3.5, '3.5']]) +
             segHTML('stories', 'Stories', [['any', 'Any'], ['1', '1 Story'], ['2', '2 Story']]) +
@@ -649,8 +602,7 @@
             triHTML('Spaces', ['flex', 'loft', 'upstairs', 'dining', 'pantry', 'butler', 'covered']) +
             triHTML('Kitchen &amp; Bath', ['islandSink', 'gardenTub', 'ceiling']) +
             segHTML('garage', 'Garage (all 2-car)', [['any', 'Any'], ['front', 'Front Load'], ['rear', 'Rear Load']]) +
-            segHTML('laundry', 'Laundry', [['any', 'Any'], ['1st', '1st Floor'], ['2nd', '2nd Floor']]) +
-            rangeHTML('sqft', 'Square Feet', 1500, 3000, 50);
+            segHTML('laundry', 'Laundry', [['any', 'Any'], ['1st', '1st Floor'], ['2nd', '2nd Floor']]);
     }
 
     function renderControls() {
@@ -663,15 +615,6 @@
             b.classList.toggle('no', v === -1);
             b.querySelector('.mark').textContent = v === 1 ? '✓' : (v === -1 ? '✕' : '+');
         });
-        ['price', 'sqft'].forEach(k => {
-            const lo = $('#' + k + 'Min'), hi = $('#' + k + 'Max');
-            if (Number(lo.value) !== state[k][0]) lo.value = state[k][0];
-            if (Number(hi.value) !== state[k][1]) hi.value = state[k][1];
-            const f = k === 'price' ? fmtK : (v => v.toLocaleString());
-            $('#' + k + 'MinVal').textContent = f(state[k][0]);
-            $('#' + k + 'MaxVal').textContent = f(state[k][1]);
-        });
-        document.querySelectorAll('#sortSeg button').forEach(b => b.classList.toggle('on', state.sort === b.dataset.sort));
     }
 
     // ---------- results ----------
@@ -721,7 +664,7 @@
             const sel = has(state.selected, p.name);
             return '<div class="card' + (sel ? ' selected' : '') + (p.soldOut ? ' sold' : '') + '" data-plan="' + p.name + '">' +
                 (p.soldOut ? '<div class="sold-badge">Sold Out</div>' : '<div class="check">✓</div>') +
-                '<div class="card-top"><div class="card-name">' + p.name + '</div><div class="card-price">' + priceText(p) + '</div></div>' +
+                '<div class="card-top"><div class="card-name">' + p.name + '</div></div>' +
                 '<div class="card-specs">' + specLine(p) + '</div>' +
                 '<div class="glance-row">' + glanceBadges(p, hits) + '</div>' +
                 (e.cfg.option ? '<div class="opt-note">Fits with option: ' + e.cfg.option.label + '</div>' : '') +
@@ -736,7 +679,7 @@
         r.innerHTML = '<button class="ruled-toggle" data-toggle-ruled="1"><span>Ruled out (' + ruled.length + ') · see why</span><span>' + (open ? '▴' : '▾') + '</span></button>' +
             (open ? '<p class="ruled-hint">Closest first. Tap a reason to drop that requirement.</p><div class="ruled-list">' + ruled.map(e => {
                 const p = e.plan, sel = has(state.selected, p.name);
-                return '<div class="rcard"><span class="rn">' + p.name + '</span><span class="rs">' + rangeText(p, 'sqft', v => v.toLocaleString()) + ' sq ft · from ' + fmtK(modelPrices[p.name] || 0) + '</span>' +
+                return '<div class="rcard"><span class="rn">' + p.name + '</span><span class="rs">' + specLine(p) + '</span>' +
                     (p.soldOut ? '' : '<button class="rsel' + (sel ? ' on' : '') + '" data-select="' + p.name + '">' + (sel ? '✓ In compare' : '+ Compare') + '</button>') +
                     '<div class="reasons">' + e.fails.map(c => '<button class="reason" data-clear="' + c.id + '">✕ ' + c.reason(p, e.cfg) + '</button>').join('') + '</div>' +
                     e.hints.map(h => '<div class="tradeoff">' + h + '</div>').join('') + '</div>';
@@ -763,9 +706,7 @@
         renderControls();
         const cs = criteria();
         const evals = floorPlans.map(p => evaluate(p, cs));
-        const order = (a, b) => state.sort === 'price'
-            ? (modelPrices[a.plan.name] || 0) - (modelPrices[b.plan.name] || 0)
-            : a.plan.sqft - b.plan.sqft;
+        const order = (a, b) => floorPlans.indexOf(a.plan) - floorPlans.indexOf(b.plan);
         const matches = evals.filter(e => !e.fails.length).sort(order);
         const ruled = evals.filter(e => e.fails.length).sort((a, b) => a.fails.length - b.fails.length || order(a, b));
         renderWish(cs);
@@ -796,20 +737,18 @@
     // ---------- compare sheet ----------
     const SECTIONS = [
         ['Overview', [
-            ['Starting price', p => priceText(p) || '—'],
             ['Bedrooms', p => String(rangeText(p, 'bedrooms', v => v))],
             ['Bathrooms', p => String(rangeText(p, 'bathrooms', v => v))],
-            ['Square feet', p => rangeText(p, 'sqft', v => v.toLocaleString())],
             ['Stories', p => p.stories === 1 ? '1 Story' : '2 Story'],
             ['Home type', p => p.type === 'sf' ? 'Single-Family' : 'Townhome']
         ]],
         ['Layout', [
-            ['Primary bedroom', p => p.dualPrimary ? 'Dual · ' + p.primarySize : (p.primaryDown ? '1st floor' : '2nd floor') + (p.primarySize ? ' · ' + p.primarySize : '')],
+            ['Primary bedroom', p => p.dualPrimary ? 'Dual (1st & 2nd floor)' : (p.primaryDown ? '1st floor' : '2nd floor')],
             ['Bedroom on 1st floor', p => p.stories === 1 ? 'Yes (1 story)' : p.primaryDown ? 'Yes (primary suite)' : p.bedroomDown ? 'Yes, with full bath'
                 : ((p.options || []).some(o => o.bedroomDown) ? 'With the ' + p.options.find(o => o.bedroomDown).short + ' (+ full bath)' : 'No')],
-            ['Living room', p => '1st floor' + (p.livingSize ? ' · ' + p.livingSize : '')],
-            ['Upstairs space', p => p.upstairs ? p.upstairs.type + (p.upstairs.size ? ' · ' + p.upstairs.size : '') : '—'],
-            ['Flex / office', p => has(p.features, 'flex') ? 'Yes' + (p.flexSize ? ' · ' + p.flexSize : '') + (p.flexNote ? ' · ' + p.flexNote : '') : 'No'],
+            ['Living room', p => '1st floor'],
+            ['Upstairs space', p => p.upstairs ? p.upstairs.type : '—'],
+            ['Flex / office', p => has(p.features, 'flex') ? 'Yes' + (p.flexNote ? ' · ' + p.flexNote : '') : 'No'],
             ['Dining', p => p.dining]
         ]],
         ['Kitchen & Bath', [
@@ -819,7 +758,7 @@
             ['Ceiling', p => p.ceiling || '—']
         ]],
         ['Outside & Systems', [
-            ['Garage', p => '2 car · ' + (p.rearLoad ? 'Rear load' : 'Front load') + (p.garageSize ? ' · ' + p.garageSize : '')],
+            ['Garage', p => '2 car · ' + (p.rearLoad ? 'Rear load' : 'Front load')],
             ['Patio', p => p.patio],
             ['Laundry', p => p.laundry + ' floor'],
             ['Water heater', p => p.type === 'sf' ? 'Tankless' : 'Standard'],
@@ -961,14 +900,9 @@
             '<div class="p-sub">' + (state.preparedFor ? 'Prepared for ' + esc(state.preparedFor) + ' · ' : '') + date + '</div></div>' + rep + '</div>' +
             (cs.length ? '<div class="p-wish"><b>What matters to you:</b> ' + cs.map(c => (c.neg ? 'No ' : '') + c.wish).join(' · ') + '</div>' : '') +
             compareTable(plans, true) + foot +
-            '<p class="p-fine">' + PRINT_FINE + '</p></section>' +
-            plans.filter(p => p.pdfUrl).map(p => '<section class="ppage"><div class="p-head"><div class="p-title">' + p.name + '</div>' + repShort + '</div>' +
-                '<img src="' + p.pdfUrl + '" alt="' + p.name + ' floor plan">' + foot + '</section>').join('');
+            '<p class="p-fine">' + PRINT_FINE + '</p></section>';
         track('fp_print', { plans: plans.length });
-        const imgs = Array.prototype.slice.call(document.querySelectorAll('#printArea img'));
-        const loaded = Promise.all(imgs.map(img => img.complete ? Promise.resolve() : new Promise(res => { img.onload = res; img.onerror = res; })));
-        const timeout = new Promise(res => setTimeout(res, 5000));
-        Promise.race([loaded, timeout]).then(() => setTimeout(() => window.print(), 150));
+        setTimeout(() => window.print(), 150);
     }
 
     // ---------- call to action: 3 seconds after the visitor reaches the bottom ----------
@@ -1064,17 +998,6 @@
     }
 
     // ---------- events ----------
-    function onRange(e) {
-        const id = e.target.id || '';
-        const key = id.indexOf('price') === 0 ? 'price' : (id.indexOf('sqft') === 0 ? 'sqft' : null);
-        if (!key) return;
-        const lo = $('#' + key + 'Min'), hi = $('#' + key + 'Max');
-        let a = Number(lo.value), b = Number(hi.value);
-        if (a > b) { if (id.slice(-3) === 'Min') { b = a; hi.value = b; } else { a = b; lo.value = a; } }
-        state[key] = [a, b];
-        render();
-    }
-
     document.addEventListener('click', e => {
         const t = e.target.closest('button, .card');
         if (!t) {
@@ -1088,7 +1011,6 @@
         if (d.toggleRuled) { state.showRuled = !state.showRuled; return render(); }
         if (d.select) return toggleSelect(d.select);
         if (d.remove) { state.selected = state.selected.filter(n => n !== d.remove); return render(); }
-        if (d.sort) { state.sort = d.sort; return render(); }
         if (d.act === 'compare') return openSheet();
         if (d.act === 'print') return printSheet();
         if (d.act === 'cta') return showCta(true);
@@ -1109,7 +1031,6 @@
     });
     document.addEventListener('input', e => {
         if (e.target.id === 'preparedFor') { state.preparedFor = e.target.value; return; }
-        if (e.target.type === 'range') onRange(e);
     });
     window.addEventListener('resize', () => { if (state.selected.length) document.body.style.setProperty('--cbar-h', $('#cbar').offsetHeight + 'px'); });
     document.addEventListener('keydown', e => {
@@ -1118,8 +1039,6 @@
     });
 
     $('#version').textContent = VERSION;
-    $('#asof').textContent = 'Starting prices as of ' + PRICES_AS_OF + '. They change often, so check drhorton.com or ask me what\u2019s current.';
-    document.querySelectorAll('.asof-date').forEach(el => { el.textContent = PRICES_AS_OF; });
     buildFilters();
     // Phones: show "See N plans" while the filter panel fills the screen.
     (function () {
